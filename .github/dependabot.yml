@@ -1,0 +1,84 @@
+version: 2
+
+# CI's audit gate fails the build on a high or critical advisory in a
+# production dependency. A gate with nothing keeping dependencies current
+# eventually fires on an unrelated pull request, and its author's only way
+# forward is an upgrade they never signed up for. These updates are the way
+# forward, arriving on their own schedule instead of on someone else's deadline.
+#
+# Minor and patch land as one pull request per group; majors arrive one at a
+# time. A major is where a fix can be a regression, and it needs a human
+# reading a changelog, not a green tick on a batch of nine other things. Every
+# `ignore` entry below carries its reason: an ignored update is a bump
+# Dependabot cannot land on its own, and a pull request that can only ever be
+# red is noise that trains people to stop reading the green ones.
+updates:
+  # `directory` is not recursive. A second lockfile (a package with its own
+  # `package-lock.json`) needs an entry of its own, or nothing audits it.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 5
+    # A release is at its most dangerous in its first days: a hijacked
+    # maintainer account publishes, and it takes the registry and the community
+    # a few days to notice and yank it. Waiting a week before proposing a
+    # version lets that happen to someone else first. Security updates are not
+    # held back; cooldown applies to version updates only.
+    cooldown:
+      default-days: 7
+    groups:
+      production-dependencies:
+        dependency-type: production
+        update-types: [minor, patch]
+      development-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+      # Exempt from the majors-arrive-alone rule, because for this family "one
+      # pull request at a time" and "a pull request that can install" are the
+      # same thing asked two ways: @vitest/coverage-v8 peer-depends on the
+      # exact vitest it ships beside, so even a patch cannot move alone, and a
+      # major proposed alone dies in `npm ci` with ERESOLVE before a test runs.
+      # Add a group here for any other pair that peer-depends on its sibling's
+      # major (a bundler and its framework plugin, a runtime and its types).
+      vitest:
+        patterns:
+          - vitest
+          - '@vitest/*'
+        update-types: [major]
+    ignore:
+      # @types/node describes the Node the code runs on, and `.nvmrc` decides
+      # that. A types major ahead of the runtime describes APIs that do not
+      # exist yet, so `tsc` accepts code that fails when it runs. Take the
+      # types major in the same change that moves `.nvmrc`, not before it.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+      # A tilde pin that Dependabot would propose past anyway. TypeScript does
+      # not follow semver, and typescript-eslint declares the range it
+      # supports; a major it has not accepted cannot install, let alone pass.
+      # TypeScript moves when typescript-eslint does, the two bumped together.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+
+  # Every `uses:` is a commit sha with `# vX.Y.Z` after it. A sha cannot move
+  # on its own, so without something raising the pin forward it rots into a
+  # permanently stale action; this is that something. Dependabot reads the
+  # trailing comment to work out what a pin currently is, and rewrites the sha
+  # and the comment together. The shared-workflows pins are bumped here too,
+  # from that repository's tags.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 5
+    # A compromised action tag is the same hazard as a compromised package,
+    # and the sha pin only protects us if we do not raise it on day one.
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns: ['*']

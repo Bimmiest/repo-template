@@ -1,0 +1,25 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Local configuration and secrets. `.env.example` is committed; `.env` never.
+.env
+.env.local
+
+# Written by `npm run test:coverage`. The floor itself lives in
+# vitest.config.ts; this is only the report the run prints and the summary
+# json the coverage-ratchet reads back.
+coverage/
+
+# Reports from optional tooling (mutation testing writes here).
+reports/
+
+# Agent worktrees and local session state. CLAUDE.md itself is committed.
+.claude/
+
+# Editors and operating systems
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.log

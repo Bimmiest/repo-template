@@ -1,0 +1,23 @@
+name: Enhancement
+description: Something it should do, or do differently
+labels: [enhancement]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What you want
+      description: The change, as the user would see it.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why
+      description: The problem it solves or the use it enables. The issue is where the why gets argued while changing it is still cheap.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Alternatives considered, prior art, constraints.

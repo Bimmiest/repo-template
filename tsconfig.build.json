@@ -1,0 +1,16 @@
+{
+  // The build: `src/` to `dist/` with declarations, tests left out.
+  // `npm run build`. Replace with the bundler's config if the project gets one;
+  // keep `build` as the script name, because CI and CONTRIBUTING use it.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "types": []
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/test"]
+}

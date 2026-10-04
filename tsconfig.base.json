@@ -1,0 +1,37 @@
+{
+  // The compiler options every tsconfig here extends. tsconfig.json type-checks
+  // everything and emits nothing; tsconfig.build.json emits `src/` to `dist/`.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": true,
+    // Only syntax Node can strip without a transform (no enums, namespaces or
+    // parameter properties), so a `.ts` file runs under `node` directly and
+    // under the shared coverage-ratchet's config import.
+    "erasableSyntaxOnly": true,
+    // Relative imports are written with their real `.ts` extension, and
+    // rewritten to `.js` on emit. One spelling that works for tsc, vitest and
+    // bare Node.
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noImplicitOverride": true,
+    // Index-signature properties are read with brackets, so a typo in a known
+    // property is a compile error rather than an `undefined`.
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+    // `exactOptionalPropertyTypes` is off. propslab tried it (#510) and found
+    // the fix is the same at every site (`key?: T` assigned a `T | undefined`),
+    // and that it is a change to make by itself, early. Decide once, here, and
+    // record it as an ADR if it is turned on.
+  }
+}

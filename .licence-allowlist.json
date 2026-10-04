@@ -1,0 +1,16 @@
+{
+  "$comment": "What a production dependency may be licensed under. Read by the shared licence-check action, which checks every package the lockfile installs under `npm ci --omit=dev`. `licences` are SPDX identifiers accepted wherever they appear; an `OR` expression passes when any branch is here, an `AND` only when every part is. `packages` is for the rest: one entry per package, pinned to the versions somebody actually read, with the licence that reading found and why it is acceptable. A bump that moves past a pinned version fails until the new version is read too.",
+  "licences": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "0BSD",
+    "BlueOak-1.0.0",
+    "Python-2.0",
+    "CC0-1.0",
+    "Unlicense"
+  ],
+  "packages": {}
+}

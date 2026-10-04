@@ -1,0 +1,48 @@
+name: Supply chain
+
+# What Dependabot cannot see. `.nvmrc` is an exact Node version, which
+# Dependabot does not read at all; once a month this compares it with the
+# newest release on its line and fails when it is behind, and the red run is
+# the reminder. On a pull request that touches `.nvmrc` it only annotates, so
+# an unrelated change is not blocked by a Node release that shipped this
+# morning. Kept apart from ci.yml so a red one does not read as a broken build.
+#
+# A repository with exact pins Dependabot cannot bump (`overrides` in
+# package.json, a git dependency by commit) adds a job here that compares them
+# with what the lockfile resolves, on the same schedule.
+on:
+  schedule:
+    # The 3rd of each month, off the hour. Monthly is often enough for a
+    # reminder about patch releases and rare enough not to become noise.
+    - cron: '41 5 3 * *'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .nvmrc
+      - .github/workflows/supply-chain.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supply-chain-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node-patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The pinned Node runs the check that asks whether it is current.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: .nvmrc is the newest patch of its Node line
+        uses: Bimmiest/shared-workflows/.github/actions/node-patch-check@3e31d07ba1f4472f7526ed8f738318287dd85642 # v1.0.0
+        with:
+          warn-only: ${{ github.event_name == 'pull_request' }}

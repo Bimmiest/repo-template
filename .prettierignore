@@ -1,0 +1,8 @@
+# Generated, vendored or produced by a run. A generated file that is committed
+# goes here too, with the script that regenerates it named beside it.
+node_modules
+dist
+coverage
+reports
+.claude
+package-lock.json

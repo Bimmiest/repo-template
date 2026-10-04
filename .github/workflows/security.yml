@@ -1,0 +1,44 @@
+name: Security
+
+# Secrets in the history and vulnerabilities in the tree, from the shared
+# workflow. Separate from CI for the same reason the audit job is separate from
+# verify: a red run here against a green one there says immediately which kind
+# of thing broke, and neither waits on the other.
+#
+# The schedule is the part that is not decoration. Both checks go red without
+# anybody having pushed anything: an advisory is published upstream, or a
+# secret that has been in the history for months is finally recognised by a
+# newer rule. A workflow that only runs on commits learns about those on
+# whatever day somebody happens to open a pull request.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Monday morning UTC, off the hour: the top of an hour is when every
+    # scheduled workflow on GitHub starts at once and runs get delayed.
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+# A new push supersedes an in-flight run for the same ref. Never cancel main:
+# its result is the record of whether the default branch is clean.
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # The checks are named `security / gitleaks` and `security / trivy`. The
+  # allowlists they read are .gitleaks.toml and .trivyignore.yaml, each of
+  # which explains what an entry needs.
+  security:
+    uses: Bimmiest/shared-workflows/.github/workflows/security.yml@3e31d07ba1f4472f7526ed8f738318287dd85642 # v1.0.0
+    # `pull-requests: read` because on a pull request gitleaks lists the PR's
+    # commits to work out what to scan. Read, not write: the findings are in
+    # the job summary, and a job whose purpose is reading history for secrets
+    # should not hold a token that can write.
+    permissions:
+      contents: read
+      pull-requests: read
