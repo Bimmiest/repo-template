@@ -34,7 +34,15 @@ The conventions, gates and governance files from [`propslab`](https://github.com
 
 4. **Replace `src/`** with the first real module and its test. Then run `npm run test:coverage` and write what it measures into `vitest.config.ts`'s `thresholds`, rounded down, with the date on the "Measured on" line. This is the one time the floors move down; from here they only ratchet up.
 
-5. **Repository settings** that are not files:
+5. **Repository settings** that are not files. A template copies files, not settings, so each of these is set again on every repository created from it.
+   - **Actions → General**: workflow permissions read-only and no creating or approving pull requests; approval required for workflows from **all** external contributors' forks; **require actions to be pinned to a full-length commit SHA** (every `uses:` here already is, and GitHub accepts a same-repository `./` reference under it). "Allow all actions" is acceptable because of that pin requirement; the stricter allowlist, if wanted, is `actions/*`, `github/*`, `Bimmiest/*`, `gitleaks/gitleaks-action@*`, `aquasecurity/trivy-action@*` and `zizmorcore/zizmor-action@*`.
+
+     ```bash
+     echo '{"enabled":true,"allowed_actions":"all","sha_pinning_required":true}' | gh api -X PUT repos/Bimmiest/<name>/actions/permissions --input -
+     gh api -X PUT repos/Bimmiest/<name>/actions/permissions/workflow -f default_workflow_permissions=read -F can_approve_pull_request_reviews=false
+     gh api -X PUT repos/Bimmiest/<name>/actions/permissions/fork-pr-contributor-approval -f approval_policy=all_external_contributors
+     ```
+
    - **Branches → `main`**: require a pull request; require the status checks `verify`, `audit`, `workflow-lint / workflow-lint`, `pr-hygiene`, `security / gitleaks` and `security / trivy` by name; block force-push and deletion. Add `dependency-review` once the dependency graph is on. A check has to have run once before GitHub offers it by name, so open the first pull request first.
    - **Security**: enable private vulnerability reporting, Dependabot alerts and the dependency graph.
    - **General → Pull requests**: squash merging only; default the squash message to the pull request title and description.
