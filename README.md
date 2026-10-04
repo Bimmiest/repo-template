@@ -44,8 +44,18 @@ The conventions, gates and governance files from [`propslab`](https://github.com
      ```
 
    - **Branches → `main`**: require a pull request; require the status checks `verify`, `audit`, `workflow-lint / workflow-lint`, `pr-hygiene`, `security / gitleaks` and `security / trivy` by name; block force-push and deletion. Add `dependency-review` once the dependency graph is on. A check has to have run once before GitHub offers it by name, so open the first pull request first.
-   - **Security**: enable private vulnerability reporting, Dependabot alerts and the dependency graph.
-   - **General → Pull requests**: squash merging only; default the squash message to the pull request title and description.
+   - **Security**: enable private vulnerability reporting, Dependabot alerts, the dependency graph and CodeQL default setup. Once CodeQL's `Analyze (…)` checks have run on a pull request, add them to the ruleset's required checks.
+
+     ```bash
+     gh api -X PUT repos/Bimmiest/<name>/private-vulnerability-reporting
+     gh api -X PATCH repos/Bimmiest/<name>/code-scanning/default-setup -f state=configured
+     ```
+
+   - **General → Pull requests**: squash merging only, the squash body defaulted to the branch's commit messages (so commit bodies and `Upgrade-Note:` lines survive the squash), and the branch deleted on merge.
+
+     ```bash
+     gh api -X PATCH repos/Bimmiest/<name> -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_squash_merge=true -f squash_merge_commit_title=COMMIT_OR_PR_TITLE -f squash_merge_commit_message=COMMIT_MESSAGES -F delete_branch_on_merge=true
+     ```
    - **Labels**: `no-issue` and `decision` are used by the process; `bug` and `enhancement` by the issue forms.
 
      ```bash

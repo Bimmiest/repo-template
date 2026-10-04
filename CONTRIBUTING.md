@@ -41,7 +41,7 @@ Subject in the imperative. Body says **why**, including what the choice cost; a 
 - When an operator must *act* on a change (a manual step, a variable renamed or re-meant, stored data to purge, a default that changes what a deployment does), add a line on its own anywhere in the message: `Upgrade-Note: <what to do, in one sentence>`. The bar is action, not interest.
 - A commit that only reformats goes in `.git-blame-ignore-revs`, one hash per line, oldest first, under a comment naming it.
 
-Pull requests are squash-merged, so the pull request's title and description become `main`'s history. Write them to that standard.
+Pull requests are squash-merged with the branch's commit messages as the body, so what you write at commit time is what `main` keeps, and an `Upgrade-Note:` in any commit survives the squash. The pull request description is for the reviewer; write both to the standard above.
 
 ## Pull requests
 
