@@ -1,119 +1,94 @@
-# new-repo
+> [!NOTE]
+> **This is a template.** To start a repository from it, follow
+> [Starting from the template](docs/starting-from-the-template.md). Delete
+> this note when you finish the last step.
+
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="new-repo" width="100%">
+</p>
+
+<p align="center">
+  <a href="https://github.com/Bimmiest/new-repo/actions/workflows/ci.yml"><img src="https://github.com/Bimmiest/new-repo/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/Bimmiest/new-repo/actions/workflows/security.yml"><img src="https://github.com/Bimmiest/new-repo/actions/workflows/security.yml/badge.svg" alt="Security status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-blue" alt="Licence: MIT"></a>
+</p>
 
 <!--
-This README is in two halves. The first, "Starting from the template", is a
-checklist for the person creating a repository from repo-template; delete it
-when every item is done. The second is the README the new repository keeps.
+How to write this README (CONTRIBUTING, "Documentation"):
+- Write it in ASD-STE100 Simplified Technical English.
+- Keep it to the fundamentals. CI fails a README of more than 200 lines.
+- Put each topic that needs more than a few lines in its own file under
+  docs/, and add a row for it in the Documentation table.
+Delete this comment when the sections below are written.
 -->
 
-## Starting from the template
+# new-repo
 
-The conventions, gates and governance files from [`propslab`](https://github.com/Bimmiest/propslab) and [`propslab-ent`](https://github.com/Bimmiest/SplunkToolkit-Ent), ready to start from. The code in `src/` is a placeholder; everything else is meant to survive. The checks run from [`shared-workflows`](https://github.com/Bimmiest/shared-workflows), pinned by commit.
+<!-- One sentence: what this is, and for whom. -->
 
-1. **Create the repository** from the template, then clone it.
+## Highlights
 
-   ```bash
-   gh repo create Bimmiest/<name> --template Bimmiest/repo-template --public --clone
-   ```
+<!-- Three to five bullets. Each bullet is one thing a user gets. -->
 
-2. **Rename.** Every `new-repo` is the placeholder for the repository's name:
+- 
 
-   ```bash
-   grep -rl new-repo . --exclude-dir=node_modules --exclude-dir=.git
-   ```
+## Overview
 
-   `package.json` (`name`, `repository.url`), `SECURITY.md`, `CHANGELOG.md`, `.github/ISSUE_TEMPLATE/config.yml`, and this file.
+<!--
+One or two short paragraphs:
+- What the product does, and how it does it at the top level.
+- How mature it is: pre-release, or a version. Name the caveats a user must
+  know before they rely on it. Delete a caveat in the change that removes it.
+- What it is not: the permanent limits, so that a reader finds them here.
+-->
 
-3. **Install and run the gates.** The lockfile is committed; `npm ci` installs exactly it.
+## Demo
 
-   ```bash
-   nvm use   # or any Node 24; .nvmrc is exact and .npmrc holds npm to engines
-   npm ci
-   npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run build
-   ```
+<!--
+Show the product in use: a screenshot, or a short GIF of under 30 seconds.
+Put the file in docs/assets/ and show it here as an image. For a
+command-line tool, a short terminal recording is a good demo.
+-->
 
-4. **Replace `src/`** with the first real module and its test. Then run `npm run test:coverage` and write what it measures into `vitest.config.ts`'s `thresholds`, rounded down, with the date on the "Measured on" line. This is the one time the floors move down; from here they only ratchet up.
-
-5. **Repository settings** that are not files. A template copies files, not settings, so each of these is set again on every repository created from it.
-   - **Actions → General**: workflow permissions read-only and no creating or approving pull requests; approval required for workflows from **all** external contributors' forks; **require actions to be pinned to a full-length commit SHA** (every `uses:` here already is, and GitHub accepts a same-repository `./` reference under it). "Allow all actions" is acceptable because of that pin requirement; the stricter allowlist, if wanted, is `actions/*`, `github/*`, `Bimmiest/*`, `gitleaks/gitleaks-action@*`, `aquasecurity/trivy-action@*` and `zizmorcore/zizmor-action@*`.
-
-     ```bash
-     echo '{"enabled":true,"allowed_actions":"all","sha_pinning_required":true}' | gh api -X PUT repos/Bimmiest/<name>/actions/permissions --input -
-     gh api -X PUT repos/Bimmiest/<name>/actions/permissions/workflow -f default_workflow_permissions=read -F can_approve_pull_request_reviews=false
-     gh api -X PUT repos/Bimmiest/<name>/actions/permissions/fork-pr-contributor-approval -f approval_policy=all_external_contributors
-     ```
-
-   - **Branches → `main`**: require a pull request; require the status checks `verify`, `audit`, `workflow-lint / workflow-lint`, `pr-hygiene`, `security / gitleaks` and `security / trivy` by name; block force-push and deletion. Add `dependency-review` once the dependency graph is on. A check has to have run once before GitHub offers it by name, so open the first pull request first.
-   - **Security**: enable private vulnerability reporting, Dependabot alerts, the dependency graph and CodeQL default setup. Once CodeQL's `Analyze (…)` checks have run on a pull request, add them to the ruleset's required checks.
-
-     ```bash
-     gh api -X PUT repos/Bimmiest/<name>/private-vulnerability-reporting
-     gh api -X PATCH repos/Bimmiest/<name>/code-scanning/default-setup -f state=configured
-     ```
-
-   - **General → Pull requests**: squash merging only, the squash body defaulted to the branch's commit messages (so commit bodies and `Upgrade-Note:` lines survive the squash), and the branch deleted on merge.
-
-     ```bash
-     gh api -X PATCH repos/Bimmiest/<name> -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_squash_merge=true -f squash_merge_commit_title=COMMIT_OR_PR_TITLE -f squash_merge_commit_message=COMMIT_MESSAGES -F delete_branch_on_merge=true
-     ```
-   - **Labels**: `no-issue` and `decision` are used by the process; `bug` and `enhancement` by the issue forms.
-
-     ```bash
-     gh label create no-issue --color ededed --description "Too small for an issue; exempt from PR hygiene's issue rules"
-     gh label create decision --color 5319e7 --description "An open question; the ADR records the answer"
-     ```
-
-6. **Write the README below**, delete this section, and open the first pull request.
-
-What a file is for, when it is not obvious from its name:
-
-| File | Why it is here |
-|---|---|
-| `.github/workflows/ci.yml` | the gates on every pull request and push to `main`, plus a weekly randomised run of the suite |
-| `.github/workflows/security.yml` | gitleaks and Trivy, weekly and on every change, in a workflow of their own so a red run says which kind of thing broke |
-| `.github/workflows/pr-hygiene.yml` | the branch and issue convention, enforced |
-| `.github/workflows/supply-chain.yml` | `.nvmrc` against the newest Node patch, monthly |
-| `.github/dependabot.yml` | weekly updates, grouped, with a cooldown; every ignore has its reason |
-| `.audit-exceptions.json`, `.licence-allowlist.json`, `.gitleaks.toml`, `.trivyignore.yaml` | the files the shared checks read; each explains itself and what an entry needs |
-| `.git-blame-ignore-revs` | reformat-only commits, so blame looks through them |
-| `.npmrc`, `.nvmrc` | one exact Node, held to by npm |
-| `docs/adr/` | decisions, with an index CI holds to the directory |
-| `CLAUDE.md` | one screen for an agent: the rules that get broken |
-
----
-
-## What it does
-
-<!-- One paragraph. What a user gets, in their terms. -->
-
-## How mature it is
-
-<!-- Pre-release, or a version. The caveats a user should know before relying on it. Delete a caveat in the change that removes it. -->
-
-## Running it locally
+## Usage
 
 ```bash
-nvm use
-npm ci
-npm run dev        # if there is one; otherwise `npm run build && node dist/index.js`
+# One or two commands that show the core job.
 ```
 
-See [CONTRIBUTING](CONTRIBUTING.md) for the gates to run before a pull request.
+## Installation
+
+```bash
+nvm use    # the Node version in .nvmrc
+npm ci
+npm run build
+```
+
+Requirements: Node, at the version in [`.nvmrc`](.nvmrc).
+<!-- Add each platform or service that the product needs. -->
 
 ## Documentation
 
 | Document | What it holds |
 |---|---|
-| [CONTRIBUTING.md](CONTRIBUTING.md) | how work happens here: branches, commits, tests, style, dependencies, releases |
-| [docs/adr/](docs/adr/README.md) | the decisions and why |
-| [CHANGELOG.md](CHANGELOG.md) | what changed for a user, newest first |
-| [SECURITY.md](SECURITY.md) | how to report a vulnerability, and what is in scope |
-| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | the Contributor Covenant, enforced through the security contact |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | How work happens here: branches, commits, tests, style, dependencies and releases |
+| [docs/adr/](docs/adr/README.md) | The decisions, and why we made them |
+| [CHANGELOG.md](CHANGELOG.md) | What changed for a user, newest first |
+| [SECURITY.md](SECURITY.md) | How to report a vulnerability, and what is in scope |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | The Contributor Covenant, enforced through the security contact |
 
-## What this is not
+<!-- Add a row for each file under docs/ that holds a topic. -->
 
-<!-- The limits that are permanent rather than pending. A reader finds them here rather than discovering them. -->
+## Contributing and feedback
+
+To report a bug or to suggest a change, open an issue. Before you open a pull
+request, read [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licence
 
-[MIT](LICENSE). <!-- Add a row per `LICENSE-*` file for third-party material redistributed here: what it covers and what it obliges. CI's docs-check fails if one is missing. -->
+[MIT](LICENSE).
+<!--
+Add a row for each LICENSE-* file of third-party material that this
+repository redistributes: what it covers and what it obliges. CI's
+docs-check fails if a LICENSE-* file is not linked here.
+-->

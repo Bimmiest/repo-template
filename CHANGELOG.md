@@ -1,8 +1,8 @@
 # Changelog
 
-All notable changes to new-repo are documented here, newest first. Entries say what changed for a user, in one or two sentences with the issue link; the reasoning behind larger design choices is in [`docs/adr/`](docs/adr/README.md).
+This file records the notable changes to new-repo, newest first. Each entry says what changed for a user, in one or two sentences, with the issue link. The reasons for larger design choices are in [`docs/adr/`](docs/adr/README.md).
 
-A release renames `Unreleased` to `x.y.z — YYYY-MM-DD` and opens a fresh `Unreleased` above it ([CONTRIBUTING](CONTRIBUTING.md#releases)).
+A release changes `Unreleased` to `x.y.z — YYYY-MM-DD`, and adds a new `Unreleased` above it ([CONTRIBUTING](CONTRIBUTING.md#releases)).
 
 ---
 

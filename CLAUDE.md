@@ -1,61 +1,69 @@
 # CLAUDE.md
 
-Conventions live in [CONTRIBUTING.md](./CONTRIBUTING.md); read it before the
-first change. This file does not summarise it. It names the rules that get
-broken, and the ones where a mistake is expensive and non-obvious.
+The conventions are in [CONTRIBUTING.md](./CONTRIBUTING.md). Read it before
+your first change. This file does not summarise it. It names the rules that
+people break, and the rules where a mistake is expensive and not obvious.
 
-## Before writing code
+## Before you write code
 
-**Open an issue first**, for anything larger than a typo. The issue is where
-the *why* gets argued while changing it is still cheap. A closed issue is not a
-substitute: if the work is new, the issue is new.
+**Open an issue first** for each change that is larger than a typo. The issue
+is where people argue about the reason, while the change is still cheap. A
+closed issue is not a substitute: new work gets a new issue.
 
 ## Branches
 
-The pattern and the type list are in [CONTRIBUTING](./CONTRIBUTING.md#branches),
-and CI refuses a pull request that breaks them. **If your session was assigned
-a non-conforming branch**, an automated `claude/…` name, say, you have standing
-permission to rename it to a conforming one, and should; reopen the pull
-request from it and say so in the description. Never resolve the conflict
-silently in either direction.
+The pattern and the types are in
+[CONTRIBUTING](./CONTRIBUTING.md#branches), and CI refuses a pull request
+that breaks them. **If your session got a branch name that does not
+conform** (for example an automatic `claude/…` name), rename it to a name
+that conforms. You have permission to do this, and you must. Open the pull
+request again from the renamed branch, and say so in the description. Do not
+choose one name silently.
 
 ## Gates
 
-Five commands, locally, before opening a pull request:
+Run these five commands before you open a pull request:
 
 ```bash
 npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run build
 ```
 
-CI runs the same five plus the shared checks (coverage ratchet, licences,
-advisories, docs links and the ADR index, PR hygiene, secrets, Trivy). When one
-of those fails it prints what to change; do that, rather than working around
-it.
+CI runs the same five commands and the shared checks: the coverage ratchet,
+licences, advisories, the documentation checks, PR hygiene, secrets and
+Trivy. When a check fails, it tells you what to change. Do that. Do not find
+a way around the check.
 
 ## Documentation
 
-**Update what your change dates, in the change that dates it.** CONTRIBUTING
-says [which document, and when](./CONTRIBUTING.md#documentation). Only the
-links and the ADR index are enforced; the rest is as true as the last person
-who touched it made it.
+- **Write all documentation in ASD-STE100.** CONTRIBUTING lists
+  [the rules](./CONTRIBUTING.md#documentation).
+- **Keep the README to the fundamentals, in a maximum of 200 lines.** CI
+  fails a longer README. Put technical detail in a file in `docs/`, and link
+  it from the README.
+- **Update the documents that your change makes wrong, in the same change.**
+  CI checks only links, the ADR index and the length of the README. The last
+  person who changed the rest of the text keeps it true.
 
 ## Expensive to get wrong
 
-- **Never lower a coverage floor** to make a branch green. Raise it when the
-  ratchet says so, in the same change.
-- **Never `eslint-disable` at a call site.** A rule that is wrong for this
-  codebase is turned off in `eslint.config.js` with the sentence saying why.
-- **Never edit an accepted ADR.** Write a new one and mark the old one
+- **Do not lower a coverage floor** to make a branch green. When the ratchet
+  tells you to raise a floor, raise it in the same change.
+- **Do not use `eslint-disable` at a call site.** If a rule is wrong for this
+  code, turn it off in `eslint.config.js`, with the sentence that says why.
+- **Do not edit an accepted ADR.** Write a new ADR, and mark the old one as
   superseded.
-- **Never paste `${{ }}` into a `run:` block.** Pull request text and inputs
-  reach a shell through `env:`.
+- **Do not put `${{ }}` in a `run:` block.** The text of a pull request and
+  the inputs get to a shell through `env:`.
 
-<!-- Add this repository's own here as they are found: vendored code that is
-never edited locally, generated files and the script that regenerates them,
-migrations that must apply as an upgrade. One line each, with the reason. -->
+<!--
+Add the rules of this repository here when you find them: vendored code that
+nobody edits here, generated files and the script that makes them, and
+migrations that must apply as an upgrade. Write one line for each rule, with
+its reason.
+-->
 
 ## Not in this file
 
-No implementation status, no roadmap, no test counts. Status belongs in issues.
-Keep this to one screen; past that it stops being read, and acting on half of
-it is worse than reading none.
+This file has no status, no plan and no test counts. Status goes in issues.
+Keep this file to one screen. A longer file does not get read, and a reader
+who acts on half of it does more damage than a reader who reads none.
