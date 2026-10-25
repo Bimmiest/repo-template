@@ -115,6 +115,8 @@ Prettier sets the formatting. Reviews do not discuss formatting.
 | `workflow-lint` | actionlint and zizmor findings in `.github/` | The workflows |
 | `PR hygiene` | A branch or an issue link that does not follow the convention above | This file |
 | `Security` | A secret anywhere in the history, or a fixable CRITICAL or HIGH vulnerability or misconfiguration in the tree | `.gitleaks.toml`, `.trivyignore.yaml` |
+| `Scorecard` (weekly and on `main`) | Nothing. It reports the OpenSSF Scorecard checks, to the README badge and to code scanning | The repository settings and the workflows |
+| `Settings` (weekly) | A repository setting that differs from the checklist, or that the token cannot read. A failure opens an issue | `.repo-settings.json` |
 
 A red shared check tells you what to change. Each job can fail
 independently, on purpose: a new advisory must not hide the result of the
@@ -257,11 +259,12 @@ text such as the Contributor Covenant. The main rules:
 - Use simple present, past or future tenses. Do not use "-ing" forms, except
   in technical names.
 - Use "must" for an obligation, "can" for an ability, and "do not" for a
-  prohibition. Do not use "should", "may", "might" or "would".
+  prohibition. Do not use `should`, `may`, `might` or `would`.
 - Use the same word for the same thing each time. Do not leave out "the",
   "a" or "an". Use a maximum of three nouns in a row.
-- Do not use phrasal verbs, contractions, semicolons in prose, or "e.g.",
-  "i.e." and "etc.".
+- Do not use phrasal verbs, contractions, semicolons in prose, or `e.g.`,
+  `i.e.` and `etc.`. The docs check warns on these words in the files
+  that `ste` names in `.docs-check.json`.
 - Do not change code, commands, file names or product names: they are
   technical names.
 
@@ -328,16 +331,14 @@ true is your decision.
 - **Untrusted text gets to a shell only through the environment.** This
   includes the body or branch name of a pull request, the title of an issue
   and a commit message. Do not put `${{ }}` in a `run:` block.
-- **Some repository settings are not files.** Set them one time, and verify
-  them when they change:
-  - Branch protection on `main`. It requires a pull request and the checks
-    above by name, and it blocks force-push and deletion.
-  - Private vulnerability reporting.
-  - Dependabot alerts.
-
-  propslab verifies its settings each week through the API
-  (`scripts/check-production-environment.mjs`). Copy that script when the
-  settings are important.
+- **Some repository settings are not files.** The checklist in
+  [`docs/starting-from-the-template.md`](docs/starting-from-the-template.md)
+  sets them, and `settings.yml` checks them each week: the merge methods,
+  the wiki, the Actions permissions, private vulnerability reporting,
+  Dependabot alerts, secret scanning, and the ruleset on `main`. When a
+  setting must differ, add an exception with the reason to
+  `.repo-settings.json`. When the ruleset requires a new check, add its name
+  there too.
 
 ## Releases
 
