@@ -57,7 +57,8 @@ the note at the top of the README.
      same repository. Because of the pin requirement, "Allow all actions" is
      acceptable. If you want a stricter allowlist, use `actions/*`,
      `github/*`, `Bimmiest/*`, `gitleaks/gitleaks-action@*`,
-     `aquasecurity/trivy-action@*` and `zizmorcore/zizmor-action@*`.
+     `aquasecurity/trivy-action@*`, `ossf/scorecard-action@*` and
+     `zizmorcore/zizmor-action@*`.
 
      ```bash
      echo '{"enabled":true,"allowed_actions":"all","sha_pinning_required":true}' | gh api -X PUT repos/Bimmiest/<name>/actions/permissions --input -
@@ -71,6 +72,8 @@ the note at the top of the README.
      force-push and deletion. When the dependency graph is on, also require
      `dependency-review`. GitHub offers a check by name only after it has
      run once, so open the first pull request before you do this step.
+     `.repo-settings.json` lists the same names, and the CodeQL checks
+     below. If you require a different set, change the file too.
 
    - **Security.** Enable private vulnerability reporting, Dependabot
      alerts, the dependency graph and the CodeQL default setup. When the
@@ -90,6 +93,23 @@ the note at the top of the README.
      ```bash
      gh api -X PATCH repos/Bimmiest/<name> -F allow_merge_commit=false -F allow_rebase_merge=false -F allow_squash_merge=true -f squash_merge_commit_title=COMMIT_OR_PR_TITLE -f squash_merge_commit_message=COMMIT_MESSAGES -F delete_branch_on_merge=true
      ```
+
+   - **The token for the settings check.** Create a fine-grained token with
+     the repository permission "Administration: read", for this repository.
+     One token can cover each repository of the owner. Add it as the
+     repository secret `SETTINGS_READ_TOKEN`. The weekly `settings.yml`
+     fails without it.
+
+     ```bash
+     gh secret set SETTINGS_READ_TOKEN -R Bimmiest/<name>
+     ```
+
+   - **A private repository.** On the Free plan, GitHub does not give a
+     private repository rulesets, secret scanning, private vulnerability
+     reporting or fork approval. Add an exception for each of these settings
+     to `.repo-settings.json`, with that reason. In `scorecard.yml`, set
+     `publish-results` and `upload-sarif` to `false`, and delete the
+     Scorecard badge from the README.
 
    - **Labels.** The process uses `no-issue` and `decision`. The issue forms
      use `bug` and `enhancement`.
@@ -114,9 +134,12 @@ This table names only the files whose purpose the name does not make clear.
 | `.github/workflows/security.yml` | gitleaks and Trivy, weekly and on each change. They have a workflow of their own, so that a red run tells you which kind of problem it found. |
 | `.github/workflows/pr-hygiene.yml` | The branch and issue convention, enforced |
 | `.github/workflows/supply-chain.yml` | A monthly comparison of `.nvmrc` with the newest patch of its Node line |
+| `.github/workflows/scorecard.yml` | OpenSSF Scorecard, weekly and on `main`, for the README badge and code scanning |
+| `.github/workflows/settings.yml` | A weekly comparison of the repository settings with this checklist. A failure opens an issue. |
 | `.github/dependabot.yml` | Weekly updates, grouped, with a cooldown. Each ignore has its reason. |
 | `.audit-exceptions.json`, `.licence-allowlist.json`, `.gitleaks.toml`, `.trivyignore.yaml` | The files that the shared checks read. Each file tells you what an entry needs. |
-| `.docs-check.json` | The settings of the shared docs check, including the line limit of the README |
+| `.docs-check.json` | The settings of the shared docs check: the line limit of the README, and the files that the STE word check reads |
+| `.repo-settings.json` | The required checks of `main`, and the exceptions to this checklist, each with its reason |
 | `.git-blame-ignore-revs` | The commits that only change formatting, so that `git blame` ignores them |
 | `.npmrc`, `.nvmrc` | One exact Node version, which npm holds you to |
 | `docs/adr/` | The decisions, with an index that CI holds to the directory |
