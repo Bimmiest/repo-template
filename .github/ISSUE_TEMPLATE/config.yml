@@ -2,4 +2,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Report a vulnerability
     url: https://github.com/Bimmiest/new-repo/security/advisories/new
-    about: Please report security vulnerabilities privately through GitHub's security advisory system, as SECURITY.md describes.
+    about: Report a security vulnerability privately, through the security advisories of GitHub, as SECURITY.md says.

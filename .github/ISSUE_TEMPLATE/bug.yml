@@ -1,5 +1,5 @@
 name: Bug report
-description: Something behaves differently from what it says it does
+description: Something does not do what it says it does
 labels: [bug]
 body:
   - type: textarea
@@ -13,7 +13,7 @@ body:
     id: steps
     attributes:
       label: Steps to reproduce
-      description: The smallest input and sequence that shows it.
+      description: The smallest input and the shortest sequence of steps that show the problem.
       placeholder: |
         1. …
         2. …
@@ -22,11 +22,11 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: What should have happened
+      label: What you expected
     validations:
       required: true
   - type: textarea
     id: context
     attributes:
-      label: Additional context
-      description: Version or commit, environment, logs, anything else that narrows it down.
+      label: Other information
+      description: The version or commit, the environment, the logs, and other facts that help to find the cause.
