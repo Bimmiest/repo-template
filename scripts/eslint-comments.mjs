@@ -54,6 +54,7 @@ function lineCommentRuns(comments) {
   return runs;
 }
 
+/** @type {import('eslint').ESLint.Plugin} */
 export default {
   rules: {
     'todo-has-issue': {
