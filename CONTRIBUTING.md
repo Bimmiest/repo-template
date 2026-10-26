@@ -193,6 +193,41 @@ for the same reason.
   Each flag has its reason. Pin `typescript` with `~`, not `^`: TypeScript
   does not follow semantic versioning, and it moves with typescript-eslint.
 
+### Code comments
+
+The code tells the reader what it does. A comment tells the reader what the
+code cannot tell. These rules apply to new code and to the code that you
+change. They come from the Google style guides, *Clean Code*, *Code Complete*,
+*A Philosophy of Software Design* and the Stack Overflow guide to code
+comments (2021).
+
+1. **A comment says why:** the constraint, the rule from a specification, or
+   the failure that the code prevents. Do not repeat what the code does.
+2. **Write the comment for the code as it is now.** Do not tell the history
+   of a change ("now", "before", "changed to"). The commit message has the
+   history. If the history explains a decision, link it: `(#123)` or
+   `See docs/adr/NNNN-title.md.`
+3. **Each exported function, class, type and constant has a TSDoc comment**
+   (`/** … */`). It says what the export does for the caller, and what it
+   promises. It does not say how.
+4. **If a comment is difficult to write, make the code clearer first.** Then
+   write the comment for the part that is still not clear.
+5. **Use the same quantity of comments as the file that you change.**
+6. **Put the reason next to the code that it explains.** The comment at the
+   top of a file says what the file is for, and what it does not do.
+7. **Link the source of a fact:** the section of a specification, the origin
+   of copied code, or the issue of the bug that the code prevents.
+8. **Do not keep code in a comment.** Git keeps the old version.
+9. **A TODO names its issue:** `TODO(#123): what is not done.`
+10. **A shortcut with a known limit says so:**
+    `shortcut: <the limit>, <when to change it>.`
+11. **When your change makes a comment false, change the comment in the same
+    commit.**
+
+`npm run lint` finds the rules 8 and 9: code in a `//` comment, and a TODO,
+FIXME or XXX that has no issue (`scripts/eslint-comments.mjs`). A reviewer
+finds the other rules.
+
 ## Dependencies
 
 - **Use a caret range. The lockfile is the pin.** Write the reason next to
@@ -308,9 +343,8 @@ true is your decision.
 
 - **Do not write by hand a fact that a tool can give.** Do not put test
   counts in the README: `npm test` prints them.
-- **Code comments** say what the code does now, and which constraint makes it
-  not obvious. For history, a comment points to the ADR:
-  `See docs/adr/NNNN-title.md.`
+- **Code comments** follow [their rules](#code-comments). For history, a
+  comment points to the ADR: `See docs/adr/NNNN-title.md.`
 - **Each deviation in a configuration file has its reason in the same
   file:** a changed lint rule, a tsconfig flag that is off, a Dependabot
   ignore, an `overrides` entry, or a `# zizmor: ignore[...]`.
