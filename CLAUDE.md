@@ -44,6 +44,12 @@ a way around the check.
   CI checks only links, the ADR index and the length of the README. The last
   person who changed the rest of the text keeps it true.
 
+## Code comments
+
+Follow [the rules](./CONTRIBUTING.md#code-comments). A comment says why, for
+the code as it is now. For history, link the issue or the ADR. Lint finds code
+in a comment, and a TODO that has no issue.
+
 ## Expensive to get wrong
 
 - **Do not lower a coverage floor** to make a branch green. When the ratchet
