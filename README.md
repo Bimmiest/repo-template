@@ -73,6 +73,7 @@ Requirements: Node, at the version in [`.nvmrc`](.nvmrc).
 | Document | What it holds |
 |---|---|
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How work happens here: branches, commits, tests, style, dependencies and releases |
+| [docs/repository-settings.md](docs/repository-settings.md) | The repository settings that are not files, and that `settings.yml` checks each week |
 | [docs/adr/](docs/adr/README.md) | The decisions, and why we made them |
 | [CHANGELOG.md](CHANGELOG.md) | What changed for a user, newest first |
 | [SECURITY.md](SECURITY.md) | How to report a vulnerability, and what is in scope |

@@ -1,7 +1,7 @@
 name: Settings
 
 # The repository settings against the checklist in
-# docs/starting-from-the-template.md, from the shared repo-settings-check.
+# docs/repository-settings.md, from the shared repo-settings-check.
 # A template copies files, not settings, so a setting drifts with no commit,
 # and a check on push does not see the drift. Thus it runs each week.
 #
@@ -52,6 +52,6 @@ jobs:
           label: scheduled-settings
           title: A repository setting differs from the template
           body: |
-            The weekly settings check found a setting that differs from the checklist in docs/starting-from-the-template.md, or a setting that the token cannot read. The run log names each one and what to change.
+            The weekly settings check found a setting that differs from the checklist in docs/repository-settings.md, or a setting that the token cannot read. The run log names each one and what to change.
 
             Run: {run}

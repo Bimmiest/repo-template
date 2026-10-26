@@ -116,7 +116,7 @@ Prettier sets the formatting. Reviews do not discuss formatting.
 | `PR hygiene` | A branch or an issue link that does not follow the convention above | This file |
 | `Security` | A secret anywhere in the history, or a fixable CRITICAL or HIGH vulnerability or misconfiguration in the tree | `.gitleaks.toml`, `.trivyignore.yaml` |
 | `Scorecard` (weekly and on `main`) | Nothing. It reports the OpenSSF Scorecard checks, to the README badge and to code scanning | The repository settings and the workflows |
-| `Settings` (weekly) | A repository setting that differs from the checklist, or that the token cannot read. A failure opens an issue | `.repo-settings.json` |
+| `Settings` (weekly) | A repository setting that differs from the checklist, or that the token cannot read. A failure opens an issue | `docs/repository-settings.md`, `.repo-settings.json` |
 
 A red shared check tells you what to change. Each job can fail
 independently, on purpose: a new advisory must not hide the result of the
@@ -332,8 +332,7 @@ true is your decision.
   includes the body or branch name of a pull request, the title of an issue
   and a commit message. Do not put `${{ }}` in a `run:` block.
 - **Some repository settings are not files.** The checklist in
-  [`docs/starting-from-the-template.md`](docs/starting-from-the-template.md)
-  sets them, and `settings.yml` checks them each week: the merge methods,
+  [`docs/repository-settings.md`](docs/repository-settings.md) sets them, and `settings.yml` checks them each week: the merge methods,
   the wiki, the Actions permissions, private vulnerability reporting,
   Dependabot alerts, secret scanning, and the ruleset on `main`. When a
   setting must differ, add an exception with the reason to
