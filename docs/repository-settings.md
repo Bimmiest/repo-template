@@ -71,7 +71,9 @@ file.
   private repository rulesets, secret scanning, private vulnerability
   reporting or fork approval. Add an exception for each of these settings
   to `.repo-settings.json`, with that reason. Four files of the template
-  are different for a private repository:
+  are different for a private repository. Add each file that you delete to
+  `.baseline-exceptions.json`, with the reason: the baseline check in
+  `ci.yml` fails on a missing file that has no exception.
 
   - **`SECURITY.md`.** Tell a reporter to open an issue with a title that
     starts `Security:`. Only the collaborators of a private repository can
