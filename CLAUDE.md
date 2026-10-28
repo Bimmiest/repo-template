@@ -37,16 +37,19 @@ a way around the check.
 
 - **Write all documentation in ASD-STE100.** CONTRIBUTING lists
   [the rules](./CONTRIBUTING.md#documentation).
+- **Put each text in its class.** A rule goes in CONTRIBUTING, in one or two
+  sentences. A recipe or a trap goes in the topic file of its area in `docs/`.
+  CI holds each class to a line limit ([the classes](./docs/documentation.md#where-each-text-goes)).
 - **Keep the README to the fundamentals, in a maximum of 200 lines.** CI
   fails a longer README. Put technical detail in a file in `docs/`, and link
   it from the README.
 - **Update the documents that your change makes wrong, in the same change.**
-  CI checks only links, the ADR index and the length of the README. The last
+  CI checks only links, the ADR index, the line limits and the topic types. The last
   person who changed the rest of the text keeps it true.
 
 ## Code comments
 
-Follow [the rules](./CONTRIBUTING.md#code-comments). A comment says why, for
+Follow [the rules](./docs/code-style.md#code-comments). A comment says why, for
 the code as it is now. For history, link the issue or the ADR. Lint finds code
 in a comment, and a TODO that has no issue.
 

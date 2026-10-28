@@ -72,8 +72,15 @@ Requirements: Node, at the version in [`.nvmrc`](.nvmrc).
 
 | Document | What it holds |
 |---|---|
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How work happens here: branches, commits, tests, style, dependencies and releases |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | The rules: issues, branches, commits, pull requests, decisions, security and releases |
+| [docs/development.md](docs/development.md) | How to set up a checkout, run the gates, and the traps |
+| [docs/ci.md](docs/ci.md) | Each CI job, what makes it fail, and what to do when a check fails only in CI |
+| [docs/testing.md](docs/testing.md) | The rules for tests |
+| [docs/code-style.md](docs/code-style.md) | The rules for the layout, the lint, the types and the code comments |
+| [docs/dependencies.md](docs/dependencies.md) | The rules for dependencies, and how to review a Dependabot pull request |
+| [docs/documentation.md](docs/documentation.md) | Where each text goes, the line limits, the topic types and the STE rules |
 | [docs/repository-settings.md](docs/repository-settings.md) | The repository settings that are not files, and that `settings.yml` checks each week |
+| [docs/starting-from-the-template.md](docs/starting-from-the-template.md) | How to make a new repository from this template |
 | [docs/adr/](docs/adr/README.md) | The decisions, and why we made them |
 | [CHANGELOG.md](CHANGELOG.md) | What changed for a user, newest first |
 | [SECURITY.md](SECURITY.md) | How to report a vulnerability, and what is in scope |
