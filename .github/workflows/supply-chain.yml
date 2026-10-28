@@ -43,6 +43,6 @@ jobs:
           node-version-file: .nvmrc
 
       - name: .nvmrc is the newest patch of its Node line
-        uses: Bimmiest/shared-workflows/.github/actions/node-patch-check@d8fe1212e8569b10ca241d597d5f13ea0c04bb04 # v1.6.0
+        uses: Bimmiest/shared-workflows/.github/actions/node-patch-check@b2584f28206b1e528d29c8403b1cdebf0e7fce8d # v1.7.0
         with:
           warn-only: ${{ github.event_name == 'pull_request' }}
