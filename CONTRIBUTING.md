@@ -123,6 +123,19 @@ independently, on purpose: a new advisory must not hide the result of the
 test suite. If the repository gets a browser suite, it is a job of its own
 for the same reason.
 
+If a check fails only in CI, compare a full run with a full run:
+
+1. Run the workflow on `main` to get a baseline: `gh workflow run ci.yml --ref main`.
+2. Compare two runs on `main` with the runs on your branch. One run is not evidence.
+3. Compare the duration of each test in the job logs. If only the failed test
+   changed, the cause is a race, not a slow runner.
+4. Make the failed assertion show the value that it has. Push this change as a
+   temporary commit.
+
+A test that runs alone proves nothing. It can pass alone and fail in the order
+of the full suite. A push cancels the run of that branch that is in progress.
+Thus, do not start a run again and push at the same time.
+
 ## Tests
 
 - Use Vitest, with the `node` environment, and put each `*.test.ts` file
@@ -238,6 +251,15 @@ finds the other rules.
 - **Dependabot** proposes updates each week, with a seven-day cooldown. It
   groups minor and patch updates, and proposes each major on its own. Each
   `ignore` entry in `.github/dependabot.yml` has its reason.
+- **Read the lockfile diff of each Dependabot pull request.** A nested copy,
+  such as `+ "packages/web/node_modules/<package>"`, tells you that the top
+  level cannot take that version. `npm ci` then installs the package with a
+  peer dependency that is not satisfied, and `verify` can stay green. To
+  correct this, run `npm dedupe`, or update the related packages in one change.
+- **Do not fix a group on the Dependabot branch.** If one package of a group
+  merges separately, Dependabot closes the group, deletes its branch and opens
+  a new group. Put the fix on a `chore/` branch from `origin/main`, and close
+  the group as superseded.
 - **Read each advisory. Do not apply fixes automatically.** One time,
   `npm audit fix --force` proposed to move a dependency thirteen minor
   versions back. If a high advisory has no path that the code can reach,
