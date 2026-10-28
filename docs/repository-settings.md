@@ -97,12 +97,13 @@ file.
     licence file. Decide this for each repository.
 
 - **Labels.** The process uses `no-issue` and `decision`. The issue forms
-  use `bug` and `enhancement`. A repository that adds the `changelog-check`
-  of shared-workflows to `pr-hygiene.yml` also uses `no-changelog`, which
-  exempts a change that no user can see.
+  use `bug`, `enhancement` and `tech-debt`. A repository that adds the
+  `changelog-check` of shared-workflows to `pr-hygiene.yml` also uses
+  `no-changelog`, which exempts a change that no user can see.
 
   ```bash
   gh label create no-issue --color ededed --description "Too small for an issue; exempt from PR hygiene's issue rules"
   gh label create decision --color 5319e7 --description "An open question; the ADR records the answer"
   gh label create no-changelog --color ededed --description "No user can see this change, so it needs no CHANGELOG entry"
+  gh label create tech-debt --color fbca04 --description "Works now but must change later: a version move, a held dependency or a workaround to remove"
   ```
