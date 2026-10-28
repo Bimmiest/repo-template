@@ -24,6 +24,12 @@ An open question that must have an answer before the code is written is an
 issue with the label `decision`. The answer becomes an ADR
 ([Decisions](#decisions)).
 
+Work that operates now but must change later, such as a held version or a
+workaround, is an issue with the label `tech-debt`. Open it in the pull
+request that makes the compromise: a compromise that has no issue is not
+visible, and nobody plans to remove it
+([when and how](docs/development.md#tech-debt)).
+
 ## Branches
 
 `main` is the only long-lived branch. Each change goes to `main` through a

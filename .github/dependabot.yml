@@ -11,7 +11,9 @@ version: 2
 # reading a changelog, not a green tick on a batch of nine other things. Every
 # `ignore` entry below carries its reason: an ignored update is a bump
 # Dependabot cannot land on its own, and a pull request that can only ever be
-# red is noise that trains people to stop reading the green ones.
+# red is noise that trains people to stop reading the green ones. An entry
+# that holds a version until something changes also names the tech-debt issue
+# that removes it; an entry that records a permanent rule does not need one.
 updates:
   # `directory` is not recursive. A second lockfile (a package with its own
   # `package-lock.json`) needs an entry of its own, or nothing audits it.
