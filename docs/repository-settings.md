@@ -70,9 +70,25 @@ file.
 - **A private repository.** On the Free plan, GitHub does not give a
   private repository rulesets, secret scanning, private vulnerability
   reporting or fork approval. Add an exception for each of these settings
-  to `.repo-settings.json`, with that reason. In `scorecard.yml`, set
-  `publish-results` and `upload-sarif` to `false`, and delete the
-  Scorecard badge from the README.
+  to `.repo-settings.json`, with that reason. Four files of the template
+  are different for a private repository:
+
+  - **`SECURITY.md`.** Tell a reporter to open an issue with a title that
+    starts `Security:`. Only the collaborators of a private repository can
+    see its issues. In `.github/ISSUE_TEMPLATE/config.yml`, link the
+    vulnerability contact to `SECURITY.md`, not to the advisory form.
+  - **`.github/workflows/scorecard.yml`.** Delete it, and delete the
+    Scorecard badge from the README. Scorecard does not publish for a
+    private repository, and the Free plan cannot upload the SARIF to code
+    scanning. Each run also uses minutes from the 2,000 Actions minutes a
+    month that the Free plan gives to private repositories.
+  - **`CODE_OF_CONDUCT.md`.** Delete it while only the owner contributes.
+    Add it again before the first contribution from another person.
+  - **`LICENSE`.** The MIT licence of the template gives rights to each
+    person who gets the code. Keep it only if you want to give those
+    rights. When there is no licence file, all rights are reserved. A
+    repository that gives a package to other people says its terms in a
+    licence file. Decide this for each repository.
 
 - **Labels.** The process uses `no-issue` and `decision`. The issue forms
   use `bug` and `enhancement`.
