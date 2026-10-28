@@ -105,182 +105,43 @@ heading.
 
 Prettier sets the formatting. Reviews do not discuss formatting.
 
-### What CI runs
-
-| Job | What makes it fail | Where the rule is |
-|---|---|---|
-| `verify` | Lint, format, types, the test suite and its coverage floor, a floor that is out of date, the build, the documentation checks below, and the licences of production dependencies | The scripts in `package.json`, `vitest.config.ts`, `.docs-check.json`, `.licence-allowlist.json` |
-| `audit` | A high or critical advisory in a production dependency, with no exception | `.audit-exceptions.json` |
-| `dependency-review` | A pull request that adds a dependency with a high advisory | The GitHub dependency graph |
-| `workflow-lint` | actionlint and zizmor findings in `.github/` | The workflows |
-| `PR hygiene` | A branch or an issue link that does not follow the convention above | This file |
-| `Security` | A secret anywhere in the history, or a fixable CRITICAL or HIGH vulnerability or misconfiguration in the tree | `.gitleaks.toml`, `.trivyignore.yaml` |
-| `Scorecard` (weekly and on `main`) | Nothing. It reports the OpenSSF Scorecard checks, to the README badge and to code scanning | The repository settings and the workflows |
-| `Settings` (weekly) | A repository setting that differs from the checklist, or that the token cannot read. A failure opens an issue | `docs/repository-settings.md`, `.repo-settings.json` |
-
-A red shared check tells you what to change. Each job can fail
-independently, on purpose: a new advisory must not hide the result of the
-test suite. If the repository gets a browser suite, it is a job of its own
-for the same reason.
-
-If a check fails only in CI, compare a full run with a full run:
-
-1. Run the workflow on `main` to get a baseline: `gh workflow run ci.yml --ref main`.
-2. Compare two runs on `main` with the runs on your branch. One run is not evidence.
-3. Compare the duration of each test in the job logs. If only the failed test
-   changed, the cause is a race, not a slow runner.
-4. Make the failed assertion show the value that it has. Push this change as a
-   temporary commit.
-
-A test that runs alone proves nothing. It can pass alone and fail in the order
-of the full suite. A push cancels the run of that branch that is in progress.
-Thus, do not start a run again and push at the same time.
+[docs/ci.md](docs/ci.md) lists each CI job, what makes it fail and where its
+rule is. A red shared check tells you what to change. Do that, and do not find
+a way around the check. If a check fails only in CI, follow
+[the procedure in ci.md](docs/ci.md#a-check-that-fails-only-in-ci).
 
 ## Tests
 
-- Use Vitest, with the `node` environment, and put each `*.test.ts` file
-  next to the code that it tests. A test that needs a DOM selects it in its
-  own file.
-- **The coverage floor is a ratchet, in both directions.** `vitest.config.ts`
-  fails a run that is below the floor. CI's coverage ratchet fails a run that
-  is more than one point above the floor, and prints the thresholds to
-  write. Raise a floor in the change that raises the coverage. Do not lower
-  a floor to make a branch green. Do not exclude code to make the numbers
-  look better. Each exclusion has its reason next to it.
-- **Lint checks what makes a test a test.** These fail lint: a case with no
-  assertion, two cases with one name, and an `expect` that is not finished
-  or not awaited. Give a helper that asserts for the test a name
-  that starts with `expect`.
-- **A test does not measure its own time.** Do not use `performance.now()`,
-  `Date.now()` or `toBeLessThan(<ms>)` in a unit test. A wall-clock
-  assertion passes on a fast machine and fails on the CI runner. Count the
-  work instead, or make the input so large that the bad version cannot
-  finish within the timeout. To prove that a new bound works, put the bug
-  back once and see the test fail.
-- **Share the test helpers.** Keep one builder for each domain object in
-  `src/test/`. A new test file uses those builders, not its own literals.
-- **CI checks the order and the environment of the tests.** Each week, CI
-  runs the suite in a random order, in a different time zone and locale. It
-  prints the seed and the command that runs the same order again. A test
-  that passes only in alphabetical order and in UTC does not test what it
-  claims.
-- **Mutation testing** is for code where a wrong answer is silent. Stryker
-  runs over that code each week. Its floor is a ratchet, like the coverage
-  floor, and it does not block pull requests. A mutant that survives is a
-  test to write, or an equivalent mutant that you record with its reason.
-  Kill a mutant with a test that asserts behaviour, not with a test that
-  only moves the number.
+The rules and their reasons are in [docs/testing.md](docs/testing.md). These
+are the rules that people break:
+
+- **The coverage floor is a ratchet.** Do not lower a floor to make a branch
+  green. When the ratchet says so, raise the floor in the same change.
+- **A test asserts behaviour, and does not measure its own time.**
+- **Use the shared builders in `src/test/`**, not new literals.
 
 ## Code style
 
-- **Prettier controls the layout** (`npm run format`). The configuration is
-  `.prettierrc.json`. Put generated files in `.prettierignore`, with the name
-  of the script that makes them.
-- **ESLint finds mistakes.** The preset is typescript-eslint
-  `strictTypeChecked`, with type information. Each rule that differs from
-  the preset has its reason next to it in `eslint.config.js`. If a rule is
-  wrong for this code, turn it off there, with a sentence that says why. Do
-  not use `eslint-disable` at the call site. One deliberate exception (for
-  example, a deprecated API that you use on purpose) gets an inline disable
-  that says so.
-- **Do not use `!` in code that ships.** Narrow the type instead: destructure
-  the value, iterate instead of index, or compare with `undefined`. Tests can
-  use `!`.
-- **A `switch` over a union has no `default`.** Then the exhaustiveness rule
-  makes a new member a compile error at each `switch`.
-- **Size limits:** 100 lines for each function and a cyclomatic complexity of
-  25. Blank lines and comments do not count, so continue to write the
-  reasons. Tests do not have these limits.
-- **Imports** are in three groups: Node built-ins, packages, then the files
-  of the project. `eslint --fix` sorts them.
-- **A layer that must stay pure** (for example a simulation engine or a
-  parser) gets a `no-restricted-imports` block. The block names what the
-  layer must not import, and why. A test lints a real import line against
-  the rule, so that a change to the configuration cannot stop the rule
-  without a failure. `eslint.config.js` has a commented example of the block.
-- **When you adopt a rule over existing code**, list the findings of that
-  day in an allowlist, by file and by rule. A test holds the list. New
-  code gets no exceptions. The list only gets shorter. When you fix a listed
-  finding, lower its count in the same change.
-- **TypeScript** is strict, with the extra flags in `tsconfig.base.json`.
-  Each flag has its reason. Pin `typescript` with `~`, not `^`: TypeScript
-  does not follow semantic versioning, and it moves with typescript-eslint.
+Prettier sets the layout, ESLint finds mistakes, and TypeScript is strict.
+[docs/code-style.md](docs/code-style.md) gives each rule with its reason, and
+the rules for code comments. These are the rules that people break:
 
-### Code comments
-
-The code tells the reader what it does. A comment tells the reader what the
-code cannot tell. These rules apply to new code and to the code that you
-change. They come from the Google style guides, *Clean Code*, *Code Complete*,
-*A Philosophy of Software Design* and the Stack Overflow guide to code
-comments (2021).
-
-1. **A comment says why:** the constraint, the rule from a specification, or
-   the failure that the code prevents. Do not repeat what the code does.
-2. **Write the comment for the code as it is now.** Do not tell the history
-   of a change ("now", "before", "changed to"). The commit message has the
-   history. If the history explains a decision, link it: `(#123)` or
-   `See docs/adr/NNNN-title.md.`
-3. **Each exported function, class, type and constant has a TSDoc comment**
-   (`/** … */`). It says what the export does for the caller, and what it
-   promises. It does not say how.
-4. **If a comment is difficult to write, make the code clearer first.** Then
-   write the comment for the part that is still not clear.
-5. **Use the same quantity of comments as the file that you change.**
-6. **Put the reason next to the code that it explains.** The comment at the
-   top of a file says what the file is for, and what it does not do.
-7. **Link the source of a fact:** the section of a specification, the origin
-   of copied code, or the issue of the bug that the code prevents.
-8. **Do not keep code in a comment.** Git keeps the old version.
-9. **A TODO names its issue:** `TODO(#123): what is not done.`
-10. **A shortcut with a known limit says so:**
-    `shortcut: <the limit>, <when to change it>.`
-11. **When your change makes a comment false, change the comment in the same
-    commit.**
-
-`npm run lint` finds the rules 8 and 9: code in a `//` comment, and a TODO,
-FIXME or XXX that has no issue (`scripts/eslint-comments.mjs`). A reviewer
-finds the other rules.
+- **Do not use `eslint-disable` at a call site.** Turn a wrong rule off in
+  `eslint.config.js`, with the sentence that says why.
+- **Do not use `!` in code that ships.** Narrow the type instead.
+- **A comment says why, for the code as it is now.** For history, link the
+  issue or the ADR.
 
 ## Dependencies
 
-- **Use a caret range. The lockfile is the pin.** Write the reason next to
-  each exception (for example, the `~` on `typescript`).
-- **Declare a package where you import it.** In a repository with
-  workspaces, declare each package in the workspace that uses it, not also at
-  the root. Use one range for each name across all manifests.
-- **Dependabot** proposes updates each week, with a seven-day cooldown. It
-  groups minor and patch updates, and proposes each major on its own. Each
-  `ignore` entry in `.github/dependabot.yml` has its reason.
-- **Read the lockfile diff of each Dependabot pull request.** A nested copy,
-  such as `+ "packages/web/node_modules/<package>"`, tells you that the top
-  level cannot take that version. `npm ci` then installs the package with a
-  peer dependency that is not satisfied, and `verify` can stay green. To
-  correct this, run `npm dedupe`, or update the related packages in one change.
-- **Do not fix a group on the Dependabot branch.** If one package of a group
-  merges separately, Dependabot closes the group, deletes its branch and opens
-  a new group. Put the fix on a `chore/` branch from `origin/main`, and close
-  the group as superseded.
-- **Read each advisory. Do not apply fixes automatically.** One time,
-  `npm audit fix --force` proposed to move a dependency thirteen minor
-  versions back. If a high advisory has no path that the code can reach,
-  list it in `.audit-exceptions.json` with the reason and an expiry date. An
-  entry that has expired, or that no advisory needs, fails CI.
-- **Licences.** The licence of each production dependency is on
-  `.licence-allowlist.json`. Otherwise the file names the package, the
-  version that a person read, and why it is acceptable.
-- **Pin a git dependency to a commit**, not a tag, because a tag can move.
-  The dependency ships a checksum that CI verifies.
-- **CI does not run install scripts** (`npm ci --ignore-scripts`). If a
-  dependency needs its install script, name it in the workflow with the
-  reason.
-- **Node** has an exact version in `.nvmrc`. `engines`, and
-  `engine-strict=true` in `.npmrc`, hold local installs to it. CI warns on a
-  pull request, and fails each month, when `.nvmrc` is behind the newest
-  patch of its line. Move the major of `@types/node` with `.nvmrc`, not
-  before it.
-- **Pin each action to a commit SHA**, with the version in a comment after
-  it. Dependabot reads the comment and updates the SHA and the comment
-  together. The owner of a tag can move it while a job holds a checkout.
+[docs/dependencies.md](docs/dependencies.md) gives the rules, and how to review
+a Dependabot pull request. In short:
+
+- **Use a caret range. The lockfile is the pin.**
+- **Read each advisory. Do not apply fixes automatically.**
+- **Pin each action and each git dependency to a commit SHA.** A tag can move.
+- **CI does not run install scripts.** Name an exception in the workflow, with
+  the reason.
 
 ## Decisions
 
@@ -301,49 +162,20 @@ and the index.
 
 ## Documentation
 
-**Write all documentation in ASD-STE100 Simplified Technical English**
+**Write all documentation in ASD-STE100**
 ([ADR 0002](docs/adr/0002-documentation-is-simplified-technical-english-and-a-readme-keeps-to-the-fundamentals.md)).
-This rule applies to each new or changed text: the README, the files in
-`docs/`, this file, `SECURITY.md`, `CLAUDE.md`, ADRs and the CHANGELOG. It
-does not apply to an accepted ADR, which does not change, or to third-party
-text such as the Contributor Covenant. The main rules:
+**Put each text in its class, and keep the file within the limit of its
+class.** The docs check enforces the limits, and each topic file in `docs/`
+declares its type. [docs/documentation.md](docs/documentation.md) gives the
+classes, the limits, the types and the STE rules. In short:
 
-- One topic in each sentence, and one instruction in each procedure step.
-- A maximum of 20 words in a procedure step, and 25 words in descriptive
-  text. A maximum of six sentences in a paragraph.
-- Use the active voice, and the imperative for an instruction. Put a
-  condition first ("If the test fails, …").
-- Use simple present, past or future tenses. Do not use "-ing" forms, except
-  in technical names.
-- Use "must" for an obligation, "can" for an ability, and "do not" for a
-  prohibition. Do not use `should`, `may`, `might` or `would`.
-- Use the same word for the same thing each time. Do not leave out "the",
-  "a" or "an". Use a maximum of three nouns in a row.
-- Do not use phrasal verbs, contractions, semicolons in prose, or `e.g.`,
-  `i.e.` and `etc.`. The docs check warns on these words in the files
-  that `ste` names in `.docs-check.json`.
-- Do not change code, commands, file names or product names: they are
-  technical names.
-
-**The README keeps to the fundamentals, in a maximum of 200 lines.** CI's
-docs check enforces the limit (`readmeMaxLines` in `.docs-check.json`). The
-README has these sections, in this order:
-
-1. A banner, the CI, security and licence badges, the name, and one sentence
-   that says what the product is.
-2. **Highlights:** three to five bullets.
-3. **Overview:** what the product does, how mature it is, and what it is not.
-4. **Demo:** a screenshot or a short GIF, from `docs/assets/`.
-5. **Usage** and **Installation:** one or two commands each.
-6. **Documentation:** a table of the documents, with a row for each file in
-   `docs/`.
-7. **Contributing and feedback**, and **Licence**.
-
-**Put technical detail in `docs/`.** If a topic needs more than a few lines,
-give it its own file in `docs/`. Link the file from the Documentation table
-of the README. Do not use a wiki. A wiki change gets no
-review and no link check. Also, GitHub does not give a wiki to a private
-repository on the Free plan.
+| Text | Where it goes |
+|---|---|
+| A rule that a contributor must follow | This file, in one or two sentences, with a link to the detail |
+| The detail of a rule, a recipe, a trap or a troubleshooting step | The topic file of its area in `docs/` |
+| A decision that stays true after the pull request | A new ADR in `docs/adr/` |
+| Work to do | An issue |
+| What changed for a user | `CHANGELOG.md`, under `Unreleased` |
 
 **A change updates the documents that it makes wrong, in the same change.**
 Do not do it later or in a follow-up issue: a document that you update a week
@@ -360,19 +192,8 @@ later is wrong for a week.
 | `CLAUDE.md` | People start to break a rule, or a mistake is expensive and not obvious |
 
 CI checks only the mechanical parts: links, the ADR index, the root licences
-in the README, and the length of the README. Whether a paragraph is still
+in the README, the line limits and the topic types. Whether a paragraph is still
 true is your decision.
-
-- **Do not write by hand a fact that a tool can give.** Do not put test
-  counts in the README: `npm test` prints them.
-- **Code comments** follow [their rules](#code-comments). For history, a
-  comment points to the ADR: `See docs/adr/NNNN-title.md.`
-- **Each deviation in a configuration file has its reason in the same
-  file:** a changed lint rule, a tsconfig flag that is off, a Dependabot
-  ignore, an `overrides` entry, or a `# zizmor: ignore[...]`.
-- **`CLAUDE.md` is one screen.** It does not summarise this file. It names
-  the rules that people break, and the rules where a mistake is expensive. It
-  has no status and no plan.
 
 ## Security
 

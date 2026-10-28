@@ -1,3 +1,7 @@
+---
+type: reference
+---
+
 # Repository settings
 
 A file in the repository cannot hold these settings, and a template copies

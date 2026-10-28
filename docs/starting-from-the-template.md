@@ -1,3 +1,7 @@
+---
+type: how-to
+---
+
 # Starting from the template
 
 This template holds the conventions, gates and governance files from
