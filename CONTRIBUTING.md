@@ -186,6 +186,8 @@ later is wrong for a week.
 | `CHANGELOG.md`, under `Unreleased` | A user can see the change. Write one or two sentences, with the issue link. |
 | `README.md` | A capability is added or changes shape, or a caveat stops being true |
 | `docs/*.md` | The topic of the file changes |
+| `docs/README.md` | A topic file is added, renamed or removed |
+| `docs/README.md` | A topic file is added, renamed or removed |
 | `docs/adr/` | A decision stays true after the pull request: add a new record **and** its row in the index |
 | The commit message | An operator must act: add one `Upgrade-Note:` line |
 | `SECURITY.md` | The attack surface changes: a new input path, or a new place where data is stored or sent |
