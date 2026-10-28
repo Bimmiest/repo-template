@@ -19,7 +19,7 @@ How to write this README (CONTRIBUTING, "Documentation"):
 - Write it in ASD-STE100 Simplified Technical English.
 - Keep it to the fundamentals. CI fails a README of more than 200 lines.
 - Put each topic that needs more than a few lines in its own file under
-  docs/, and add a row for it in the Documentation table.
+  docs/, and add a row for it in docs/README.md, the index.
 Delete this comment when the sections below are written.
 -->
 
@@ -70,23 +70,13 @@ Requirements: Node, at the version in [`.nvmrc`](.nvmrc).
 
 ## Documentation
 
-| Document | What it holds |
-|---|---|
-| [CONTRIBUTING.md](CONTRIBUTING.md) | The rules: issues, branches, commits, pull requests, decisions, security and releases |
-| [docs/development.md](docs/development.md) | How to set up a checkout, run the gates, and the traps |
-| [docs/ci.md](docs/ci.md) | Each CI job, what makes it fail, and what to do when a check fails only in CI |
-| [docs/testing.md](docs/testing.md) | The rules for tests |
-| [docs/code-style.md](docs/code-style.md) | The rules for the layout, the lint, the types and the code comments |
-| [docs/dependencies.md](docs/dependencies.md) | The rules for dependencies, and how to review a Dependabot pull request |
-| [docs/documentation.md](docs/documentation.md) | Where each text goes, the line limits, the topic types and the STE rules |
-| [docs/repository-settings.md](docs/repository-settings.md) | The repository settings that are not files, and that `settings.yml` checks each week |
-| [docs/starting-from-the-template.md](docs/starting-from-the-template.md) | How to make a new repository from this template |
-| [docs/adr/](docs/adr/README.md) | The decisions, and why we made them |
-| [CHANGELOG.md](CHANGELOG.md) | What changed for a user, newest first |
-| [SECURITY.md](SECURITY.md) | How to report a vulnerability, and what is in scope |
-| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | The Contributor Covenant, enforced through the security contact |
+The topic files are listed in [docs/README.md](docs/README.md). The documents
+outside `docs/`:
 
-<!-- Add a row for each file under docs/ that holds a topic. -->
+- [CONTRIBUTING.md](CONTRIBUTING.md) — The rules: issues, branches, commits, pull requests, decisions, security and releases
+- [CHANGELOG.md](CHANGELOG.md) — What changed for a user, newest first
+- [SECURITY.md](SECURITY.md) — How to report a vulnerability, and what is in scope
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — The Contributor Covenant, enforced through the security contact
 
 ## Contributing and feedback
 

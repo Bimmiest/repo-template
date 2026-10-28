@@ -45,6 +45,16 @@ repository adds other topic files for its own areas. A recipe, a trap or a
 troubleshooting step goes in the topic file of its area, not in
 `CONTRIBUTING.md`. If a topic file gets to its limit, split it by subtopic.
 
+## The index
+
+`docs/README.md` lists each topic file in `docs/`, with one row for each
+file, in path order. GitHub shows it when a reader opens `docs/`. When you
+add, rename or remove a topic file, change its row there, and only there.
+The docs check fails a file that has no row, a row that has no file, and a
+row out of order (`docsIndex` in `.docs-check.json`). The other documents
+(`CONTRIBUTING.md`, `CHANGELOG.md`, `SECURITY.md` and the like) are listed in
+the README.
+
 ## ASD-STE100
 
 Write each new or changed text in ASD-STE100 Simplified Technical English
@@ -80,9 +90,14 @@ README has these sections, in this order:
 3. **Overview:** what the product does, how mature it is, and what it is not.
 4. **Demo:** a screenshot or a short GIF, from `docs/assets/`.
 5. **Usage** and **Installation:** one or two commands each.
-6. **Documentation:** a table of the documents, with a row for each file in
-   `docs/`.
+6. **Documentation:** one line that links the index, `docs/README.md`, and a
+   list of the documents at the root.
 7. **Contributing and feedback**, and **Licence**.
+
+**Put technical detail in `docs/`.** If a topic needs more than a few lines,
+give it its own file in `docs/`, and a row in the index. Do not use a wiki. A
+wiki change gets no review and no link check. Also, GitHub does not give a
+wiki to a private repository on the Free plan.
 
 ## Other rules
 
