@@ -57,7 +57,7 @@ the note at the top of the README.
 
 6. **Write the README.** Replace each placeholder, and add a demo. Keep the
    README to the fundamentals, in ASD-STE100, and within 200 lines
-   (CONTRIBUTING, "Documentation"). Then delete this file and the note at
+   ([documentation.md](documentation.md#the-readme)). Then delete this file and the note at
    the top of the README, and open the first pull request.
 
 ## What each file is for

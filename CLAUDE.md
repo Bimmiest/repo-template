@@ -35,8 +35,8 @@ a way around the check.
 
 ## Documentation
 
-- **Write all documentation in ASD-STE100.** CONTRIBUTING lists
-  [the rules](./CONTRIBUTING.md#documentation).
+- **Write all documentation in ASD-STE100.** [docs/documentation.md](./docs/documentation.md#asd-ste100)
+  lists the rules.
 - **Put each text in its class.** A rule goes in CONTRIBUTING, in one or two
   sentences. A recipe or a trap goes in the topic file of its area in `docs/`.
   CI holds each class to a line limit ([the classes](./docs/documentation.md#where-each-text-goes)).

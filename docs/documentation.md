@@ -93,6 +93,6 @@ README has these sections, in this order:
 - **Each deviation in a configuration file has its reason in the same
   file:** a changed lint rule, a tsconfig flag that is off, a Dependabot
   ignore, an `overrides` entry, or a `# zizmor: ignore[...]`.
-- **`CLAUDE.md` is one screen.** It does not summarise this file. It names
+- **`CLAUDE.md` is one screen.** It does not summarise CONTRIBUTING.md. It names
   the rules that people break, and the rules where a mistake is expensive. It
   has no status and no plan.
