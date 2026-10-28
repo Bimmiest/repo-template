@@ -13,7 +13,9 @@ The rules for dependencies, and how to review an update. CONTRIBUTING.md has the
   the root. Use one range for each name across all manifests.
 - **Dependabot** proposes updates each week, with a seven-day cooldown. It
   groups minor and patch updates, and proposes each major on its own. Each
-  `ignore` entry in `.github/dependabot.yml` has its reason.
+  `ignore` entry in `.github/dependabot.yml` has its reason. An entry that
+  holds a version until something changes also names its `tech-debt` issue
+  ([Tech debt](development.md#tech-debt)).
 - **Read the lockfile diff of each Dependabot pull request.** A nested copy,
   such as `+ "packages/web/node_modules/<package>"`, tells you that the top
   level cannot take that version. `npm ci` then installs the package with a
