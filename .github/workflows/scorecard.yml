@@ -9,9 +9,9 @@ name: Scorecard
 # and with no commit. Scorecard publishes only from a workflow with no
 # top-level `env`, `defaults` or write permission, so this file has none.
 #
-# A private repository: set both inputs below to false. Scorecard does not
-# publish for it, and the Free plan cannot upload the SARIF. Then delete the
-# badge from the README, and read the result in the artifact of the run.
+# A private repository deletes this file and the README badge: Scorecard does
+# not publish for it, and the Free plan cannot upload the SARIF
+# (docs/repository-settings.md).
 on:
   push:
     branches: [main]
