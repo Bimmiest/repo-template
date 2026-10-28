@@ -35,13 +35,17 @@ file.
   force-push and deletion. When the dependency graph is on, also require
   `dependency-review`. GitHub offers a check by name only after it has
   run once, so open the first pull request before you do this step.
-  `.repo-settings.json` lists the same names, and the CodeQL checks
+  `.repo-settings.json` lists the same names, and the CodeQL check
   below. If you require a different set, change the file too.
 
 - **Security.** Enable private vulnerability reporting, Dependabot
-  alerts, the dependency graph and the CodeQL default setup. When the
-  `Analyze (…)` checks of CodeQL have run on a pull request, add them to
-  the required checks of the ruleset.
+  alerts, the dependency graph and the CodeQL default setup. When CodeQL
+  has run on a pull request, add its `CodeQL` check, from GitHub Advanced
+  Security, to the required checks of the ruleset. Do not require the
+  `Analyze (…)` checks. CodeQL does not analyse a pull request that changes
+  no code, such as a lockfile bump. Then the `Analyze (…)` checks never
+  report, and the pull request cannot merge. `CodeQL` reports neutral, and a
+  required check accepts neutral.
 
   ```bash
   gh api -X PUT repos/Bimmiest/new-repo/private-vulnerability-reporting
