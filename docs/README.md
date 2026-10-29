@@ -17,5 +17,6 @@ documents at the root are listed in the [README](../README.md#documentation).
 | [development.md](development.md) | How to set up a checkout, run the gates, record tech debt, and the traps |
 | [documentation.md](documentation.md) | Where each text goes, the line limits, the topic types and the STE rules |
 | [repository-settings.md](repository-settings.md) | The repository settings that are not files, and that `settings.yml` checks each week |
+| [standard.md](standard.md) | The baseline that each repository on both forges is held to |
 | [starting-from-the-template.md](starting-from-the-template.md) | How to make a new repository from this template |
 | [testing.md](testing.md) | The rules for tests |
