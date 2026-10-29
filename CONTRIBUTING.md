@@ -87,16 +87,9 @@ description is for the reviewer. Write both to the standard above.
 
 ## Pull requests
 
-Run all of these commands before you open a pull request. CI runs the same
-commands and the shared checks below.
-
-```bash
-npm run lint
-npm run format:check
-npm run typecheck
-npm run test:coverage
-npm run build
-```
+Run the gates before you open a pull request.
+[docs/development.md](docs/development.md#run-the-gates) gives the commands.
+CI runs the same commands and the shared checks below.
 
 The pull request template has four sections:
 
@@ -109,7 +102,7 @@ The pull request template has four sections:
 Delete a section that does not apply. An empty heading is worse than no
 heading.
 
-Prettier sets the formatting. Reviews do not discuss formatting.
+The formatter sets the formatting. Reviews do not discuss formatting.
 
 [docs/ci.md](docs/ci.md) lists each CI job, what makes it fail and where its
 rule is. A red shared check tells you what to change. Do that, and do not find
@@ -124,28 +117,32 @@ are the rules that people break:
 - **The coverage floor is a ratchet.** Do not lower a floor to make a branch
   green. When the ratchet says so, raise the floor in the same change.
 - **A test asserts behaviour, and does not measure its own time.**
-- **Use the shared builders in `src/test/`**, not new literals.
+- **Use the shared test builders**, not new literals. testing.md says where they are.
 
 ## Code style
 
-Prettier sets the layout, ESLint finds mistakes, and TypeScript is strict.
-[docs/code-style.md](docs/code-style.md) gives each rule with its reason, and
-the rules for code comments. These are the rules that people break:
+The formatter sets the layout, the linter finds mistakes, and the type check
+is strict. [docs/code-style.md](docs/code-style.md) names the tools, and gives
+each rule with its reason and the rules for code comments. These are the rules
+that people break:
 
-- **Do not use `eslint-disable` at a call site.** Turn a wrong rule off in
-  `eslint.config.js`, with the sentence that says why.
-- **Do not use `!` in code that ships.** Narrow the type instead.
+- **Do not turn a lint rule off at a call site.** Turn a wrong rule off in the
+  lint config, with the sentence that says why.
+- **Do not tell the type check that a value is present.** Narrow the type
+  instead. code-style.md gives the form for this stack.
 - **A comment says why, for the code as it is now.** For history, link the
   issue or the ADR.
 
 ## Dependencies
 
 [docs/dependencies.md](docs/dependencies.md) gives the rules, and how to review
-a Dependabot pull request. In short:
+a pull request from the update bot. In short:
 
-- **Use a caret range. The lockfile is the pin.**
+- **Give a range in the manifest, and commit the lockfile. The lockfile is the
+  pin.**
 - **Read each advisory. Do not apply fixes automatically.**
-- **Pin each action and each git dependency to a commit SHA.** A tag can move.
+- **Pin each action and each git dependency to a commit SHA, and each image to
+  a digest.** A tag can move.
 - **CI does not run install scripts.** Name an exception in the workflow, with
   the reason.
 
@@ -232,14 +229,15 @@ build: a tag starts nothing.
 
 1. On a branch, change `## Unreleased` in `CHANGELOG.md` to
    `## x.y.z — YYYY-MM-DD`. Add a new, empty `## Unreleased` above it.
-2. Run `npm version x.y.z --no-git-tag-version`. It updates `package.json`
-   and the lockfile.
+2. If the repository has a manifest with a version, set it to `x.y.z`. In a
+   `node-ts` repository, run `npm version x.y.z --no-git-tag-version`. It
+   updates `package.json` and the lockfile.
 3. Open a pull request, and merge it when CI is green.
 4. Tag the merge commit with `git tag -a vx.y.z <sha> -m "Release x.y.z"`,
    and push the tag. The tag is a bookmark for people.
 
-A service that deploys each commit can decide that **the commit SHA is the
-release**. Then there are no version numbers, no tags and no CHANGELOG.
-`git log` is the record, and the `Upgrade-Note:` lines are the part for
-operators (propslab-ent ADRs 27 and 134). That is a decision: record it as an
-ADR, and delete `CHANGELOG.md` in the same change.
+If nobody picks a version of the repository, **the commit SHA is the
+release** ([standard](docs/standard.md#releases), estate ADR 0024). Then there
+are no version numbers, no tags and no CHANGELOG. `git log` is the record, and
+the `Upgrade-Note:` lines are the part for operators. Say so in one line of the
+README, and delete `CHANGELOG.md` in the same change.
