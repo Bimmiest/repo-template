@@ -22,16 +22,13 @@ choose one name silently.
 
 ## Gates
 
-Run these five commands before you open a pull request:
+Run the gates before you open a pull request.
+[docs/development.md](./docs/development.md#run-the-gates) gives the commands.
 
-```bash
-npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run build
-```
-
-CI runs the same five commands and the shared checks: the coverage ratchet,
-licences, advisories, the documentation checks, PR hygiene, secrets and
-Trivy. When a check fails, it tells you what to change. Do that. Do not find
-a way around the check.
+CI runs the same commands and the shared checks: the documentation checks, PR
+hygiene, secrets, Trivy, and the checks of the stack (for `node-ts`: the
+coverage ratchet, licences and advisories). When a check fails, it tells you
+what to change. Do that. Do not find a way around the check.
 
 ## Documentation
 
@@ -57,8 +54,8 @@ in a comment, and a TODO that has no issue.
 
 - **Do not lower a coverage floor** to make a branch green. When the ratchet
   tells you to raise a floor, raise it in the same change.
-- **Do not use `eslint-disable` at a call site.** If a rule is wrong for this
-  code, turn it off in `eslint.config.js`, with the sentence that says why.
+- **Do not turn a lint rule off at a call site.** If a rule is wrong for this
+  code, turn it off in the lint config, with the sentence that says why.
 - **Do not edit an accepted ADR.** Write a new ADR, and mark the old one as
   superseded.
 - **Do not put `${{ }}` in a `run:` block.** The text of a pull request and

@@ -33,10 +33,8 @@ Say what you ran, and what it said. "Tests pass" is a claim. The output is
 the evidence. Paste the important lines.
 -->
 
-- [ ] `npm run lint` and `npm run format:check`
-- [ ] `npm run typecheck`
-- [ ] `npm run test:coverage`, and the floor in `vitest.config.ts` is raised if the ratchet asks
-- [ ] `npm run build`
+- [ ] The gates in [docs/development.md](../docs/development.md#run-the-gates) pass
+- [ ] The coverage floor is raised if the ratchet asks
 - [ ] The documents that this change makes wrong are updated in this change, in ASD-STE100 ([CONTRIBUTING](../CONTRIBUTING.md#documentation)):
   - `CHANGELOG.md`, under `Unreleased`, for a change that a user can see
   - The README, or a file in `docs/`, where a capability changed shape
