@@ -42,9 +42,12 @@ The rules for the layout, the lint and the types of the code, and for code comme
   the rule, so that a change to the configuration cannot stop the rule
   without a failure. `eslint.config.js` has a commented example of the block.
 - **When you adopt a rule over existing code**, list the findings of that
-  day in an allowlist, by file and by rule. A test holds the list. New
-  code gets no exceptions. The list only gets shorter. When you fix a listed
-  finding, lower its count in the same change.
+  day in `scripts/lint-allowlist.json`, by file and by rule.
+  `eslint.config.js` turns each listed rule off for its file. CI's
+  `lint-allowlist-check` lints the listed files with the rules on again, and
+  fails when a count differs. New code gets no exceptions. The list only
+  gets shorter. When you fix a listed finding, lower its count in the same
+  change.
 - **TypeScript** is strict, with the extra flags in `tsconfig.base.json`.
   Each flag has its reason. Pin `typescript` with `~`, not `^`: TypeScript
   does not follow semantic versioning, and it moves with typescript-eslint.

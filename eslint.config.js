@@ -5,6 +5,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import comments from './scripts/eslint-comments.mjs';
+import lintAllowlist from './scripts/lint-allowlist.json' with { type: 'json' };
 
 /**
  * Lint catches mistakes; Prettier owns layout. Nothing here enforces where a
@@ -167,4 +168,14 @@ export default defineConfig([
   //     'no-restricted-imports': ['error', { patterns: [{ group: ['**/ui', '**/ui/**'], message: 'The engine stays UI-free.' }] }],
   //   },
   // },
+  // The findings that existed when a rule was adopted, off for their files
+  // only (docs/code-style.md). Last, so that it wins over the blocks that turn
+  // the rules on. CI's lint-allowlist-check lints the same files with the
+  // rules on again and fails when a count changes, so this hides no new code.
+  // Each path is escaped, because `files` takes a glob and `[id]` is a
+  // character class.
+  ...Object.entries(lintAllowlist.files).map(([file, rules]) => ({
+    files: [file.replace(/[\\[\]{}()*?!+@]/g, '\\$&')],
+    rules: Object.fromEntries(Object.keys(rules).map((rule) => [rule, 'off'])),
+  })),
 ]);
