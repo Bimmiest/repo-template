@@ -132,6 +132,8 @@ that people break:
   instead. code-style.md gives the form for this stack.
 - **A comment says why, for the code as it is now.** For history, link the
   issue or the ADR.
+- **Each diagnostic has a code, and a test asserts the code, not the
+  message.** code-style.md gives the rule.
 
 ## Dependencies
 

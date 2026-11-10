@@ -80,6 +80,27 @@ export default defineConfig([
     },
   },
   {
+    // A test asserts a diagnostic's code and data, never its message, so a
+    // change of wording breaks no behaviour test (#56, docs/code-style.md). A
+    // thrown error is asserted with `toThrow()`, which this does not match.
+    // scripts/eslint-config.test.mjs lints real lines against these selectors.
+    files: ['**/*.test.{ts,mts}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.name='expect'] > MemberExpression.arguments[property.name='message']",
+          message: 'Assert the code and the data of a diagnostic, not its message (docs/code-style.md).',
+        },
+        {
+          selector:
+            "CallExpression[callee.property.name='objectContaining'] > ObjectExpression > Property[key.name='message']",
+          message: 'Assert the code and the data of a diagnostic, not its message (docs/code-style.md).',
+        },
+      ],
+    },
+  },
+  {
     // Maintenance scripts and this config: plain JavaScript outside every
     // tsconfig, so no type-aware rules. ESM, because package.json is
     // "type": "module".

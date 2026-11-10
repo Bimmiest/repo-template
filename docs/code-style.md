@@ -19,6 +19,16 @@ The rules for the layout, the lint and the types of the code, and for code comme
 - **Do not use `!` in code that ships.** Narrow the type instead: destructure
   the value, iterate instead of index, or compare with `undefined`. Tests can
   use `!`.
+- **Each diagnostic has a code** (#56). This applies to a program that gives
+  diagnostics (errors, warnings, findings) to a user or to a caller. The
+  diagnostic type has a required `code` field, and its type is one union.
+  Thus the compiler refuses a diagnostic with no code, or with a code that is
+  not in the union. The message text stays next to the condition that gives
+  it. A test asserts the code and the data, never a part of the message, so a
+  change of the words breaks no behaviour test. Lint refuses `.message` in an
+  `expect(...)` and in `expect.objectContaining(...)` in a test. Assert a
+  thrown error with `toThrow()`. A code is public after its first release: to
+  rename or remove a code is a major version.
 - **A `switch` over a union has no `default`.** Then the exhaustiveness rule
   makes a new member a compile error at each `switch`.
 - **Size limits:** 100 lines for each function and a cyclomatic complexity of
