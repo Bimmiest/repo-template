@@ -31,7 +31,7 @@ Each repository has all of the core set, whatever its stack.
 | Decision index | `docs/adr/README.md` | One row for each record in `docs/adr/` |
 | Pull request template | `pull_request_template.md` | In the forge folder |
 | Issue forms | `ISSUE_TEMPLATE/` | Bug, enhancement, decision and tech debt, each with its label. In the forge folder |
-| Code owners | `CODEOWNERS` | In the forge folder |
+| Code owners | `CODEOWNERS` | In the forge folder. It names the owner of each gate file, and no review is required ([ADR 0003](adr/0003-code-owners-are-asked-to-review-a-gate-change-and-no-review-is-required.md)) |
 
 The forge folder is `.github/` on GitHub and `.forgejo/` on Forgejo. The line
 limits and the classes of each file are in [documentation.md](documentation.md).

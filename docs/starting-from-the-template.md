@@ -72,6 +72,7 @@ This table names only the files whose purpose the name does not make clear.
 | `.github/workflows/supply-chain.yml` | A monthly comparison of `.nvmrc` with the newest patch of its Node line |
 | `.github/workflows/scorecard.yml` | OpenSSF Scorecard, weekly and on `main`, for the README badge and code scanning |
 | `.github/workflows/settings.yml` | A weekly comparison of the repository settings with the checklist in `docs/repository-settings.md`. A failure opens an issue. |
+| `.github/CODEOWNERS` | The owner of each gate file: a workflow, a file that a check reads, and this file. A change to a gate file asks the owner for a review, and nothing requires the review ([ADR 0003](adr/0003-code-owners-are-asked-to-review-a-gate-change-and-no-review-is-required.md)). Add the gate files of each stack that the repository has. |
 | `.github/dependabot.yml` | Weekly updates, grouped, with a cooldown. Each ignore has its reason. |
 | `.audit-exceptions.json`, `.licence-allowlist.json`, `.gitleaks.toml`, `.trivyignore.yaml` | The files that the shared checks read. Each file tells you what an entry needs. |
 | `.docs-check.json` | The settings of the shared docs check: the line limit of the README, and the files that the STE word check reads |
