@@ -40,4 +40,4 @@ jobs:
       # pin or the inputs below is what review looks at on a pull request that
       # touches `.github/workflows/`. The rules themselves are the action's,
       # pinned by sha; `dependabot[bot]` is exempt by author.
-      - uses: Bimmiest/shared-workflows/.github/actions/pr-hygiene@b00f69f45abd2442821c1503a268f05ae09fd204 # v1.7.1
+      - uses: Bimmiest/shared-workflows/.github/actions/pr-hygiene@171cd386717395c01be5e23ab926823c7b246cf6 # v1.11.0
