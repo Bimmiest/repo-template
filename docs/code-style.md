@@ -44,6 +44,18 @@ The rules for the layout, the lint and the types of the code, and for code comme
   layer must not import, and why. A test lints a real import line against
   the rule, so that a change to the configuration cannot stop the rule
   without a failure. `eslint.config.js` has a commented example of the block.
+- **Do not keep state that changes at module level** (#55). State that
+  changes belongs to the object that owns the operation, and the operation
+  gets it in its context. A module-level `let` is a hidden input to each
+  function that reads it. Two callers in one process share it, and a test
+  cannot give it a different value. Lint refuses a `let` at the top level of
+  a module, except in a test, where a `let` that `beforeEach` sets shares a
+  fixture. Lint does not find a module-level `const` that holds a `Map` or a
+  `Set`, so a reviewer must find a cache of that form.
+
+  If a block for the same files has a `no-restricted-syntax` list, merge the
+  two lists into one. A later block replaces the list of an earlier block,
+  and does not add to it.
 - **When you adopt a rule over existing code**, list the findings of that
   day in `scripts/lint-allowlist.json`, by file and by rule.
   `eslint.config.js` turns each listed rule off for its file. CI's

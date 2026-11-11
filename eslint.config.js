@@ -102,6 +102,32 @@ export default defineConfig([
     },
   },
   {
+    // State that changes at module level is a hidden input to every function
+    // that reads it: two callers in one process share it, and a test cannot
+    // give a function another value without changing the module. It belongs to
+    // the object that owns the operation, passed in that operation's context
+    // (#55, docs/code-style.md). A module-level `const` holding a Map or a Set
+    // is not matched; a cache of that shape is left to review.
+    //
+    // Tests are exempt: a `let` that `beforeEach` sets is how a suite shares a
+    // fixture. They are left out with `ignores` rather than overridden, because
+    // a later block's `no-restricted-syntax` replaces an earlier block's list
+    // for the same file instead of adding to it. A new list for these files is
+    // merged into this one. scripts/eslint-config.test.mjs lints real lines
+    // through both blocks.
+    files: ['**/*.{ts,mts}', 'scripts/**/*.{js,mjs}'],
+    ignores: ['**/*.test.{ts,mts,mjs}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: ':matches(Program, ExportNamedDeclaration) > VariableDeclaration[kind="let"]',
+          message: 'Do not keep state that changes at module level. Pass it in the context of the operation.',
+        },
+      ],
+    },
+  },
+  {
     // Maintenance scripts and this config: plain JavaScript outside every
     // tsconfig, so no type-aware rules. ESM, because package.json is
     // "type": "module".
