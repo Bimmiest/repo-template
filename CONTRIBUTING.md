@@ -116,7 +116,8 @@ are the rules that people break:
 
 - **The coverage floor is a ratchet.** Do not lower a floor to make a branch
   green. When the ratchet says so, raise the floor in the same change.
-- **A test asserts behaviour, and does not measure its own time.**
+- **A test asserts behaviour, and a unit test does not measure its own
+  time.** A time budget goes in a test project of its own, with no retries.
 - **Use the shared test builders**, not new literals. testing.md says where they are.
 
 ## Code style
