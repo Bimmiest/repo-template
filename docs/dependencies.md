@@ -6,6 +6,8 @@ type: reference
 
 The rules for dependencies, and how to review an update. CONTRIBUTING.md has the summary.
 
+## The rules
+
 - **Use a caret range. The lockfile is the pin.** Write the reason next to
   each exception (for example, the `~` on `typescript`).
 - **Declare a package where you import it.** In a repository with
@@ -49,3 +51,9 @@ The rules for dependencies, and how to review an update. CONTRIBUTING.md has the
 - **Pin each action to a commit SHA**, with the version in a comment after
   it. Dependabot reads the comment and updates the SHA and the comment
   together. The owner of a tag can move it while a job holds a checkout.
+
+## In this repository
+
+Put the text of this repository here, and each deviation from a rule above,
+with its reason ([the rule](documentation.md#the-template-text-and-the-repository-text)).
+The template has no text of its own.

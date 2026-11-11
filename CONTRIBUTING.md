@@ -183,6 +183,11 @@ classes, the limits, the types and the STE rules. In short:
 | Work to do | An issue |
 | What changed for a user | `CHANGELOG.md`, under `Unreleased` |
 
+**In each of the six topic files, the text of the template comes first, and
+the text of the repository goes below `## In this repository`.** Write a
+deviation from a template rule there, with its reason, and do not edit the
+rule ([documentation.md](docs/documentation.md#the-template-text-and-the-repository-text)).
+
 **A change updates the documents that it makes wrong, in the same change.**
 Do not do it later or in a follow-up issue: a document that you update a week
 later is wrong for a week.

@@ -45,6 +45,55 @@ repository adds other topic files for its own areas. A recipe, a trap or a
 troubleshooting step goes in the topic file of its area, not in
 `CONTRIBUTING.md`. If a topic file gets to its limit, split it by subtopic.
 
+## The template text and the repository text
+
+Each of the six topic files has two parts (template
+[ADR 0005](https://github.com/Bimmiest/repo-template/blob/main/docs/adr/0005-each-topic-file-has-the-template-text-first-and-the-repository-text-below-one-heading.md)):
+
+1. The text of the template, first. It is byte for byte the same as the
+   template, at the template commit that the repository follows.
+2. The text of the repository, below the heading `## In this repository`.
+   This heading is fixed, and it is the last `##` section of the file.
+
+- **Put the text of the repository below the heading:** its own rules,
+  recipes, traps and examples.
+- **Write a deviation below the heading, with its reason.** A deviation is a
+  template rule that the repository does not follow. Name the rule, and say
+  what the repository does instead. Do not edit the rule above the heading,
+  because then a reader cannot see the deviation.
+- **To change the text above the heading, change the template first.** Then
+  copy the new text to each repository. Do not change where the lines
+  break. The template breaks its lines at about 78 columns, and a paragraph
+  with different line breaks differs on each line.
+- **In the template text, link an ADR of the template by its full URL, and
+  write an issue as `Bimmiest/repo-template#n`.** In a copy, a relative link
+  or a bare `#n` goes to a different record, in that repository.
+- **In the template, put each rule in a `##` section.** Then the check can
+  compare the section, and a repository can omit the section by its name.
+
+A check in shared-workflows will compare each `##` section above the heading
+with the same section of the pinned template commit
+(Bimmiest/shared-workflows#73). That check is not there yet. When it is
+there, a repository omits a full template section with an entry in
+`.baseline-exceptions.json`. The entry names the file, the section and the
+reason:
+
+```json
+{
+  "exceptions": [
+    {
+      "file": "docs/code-style.md",
+      "section": "The rules",
+      "reason": "The repository has no toolchain. Its rules for the scripts are below the heading (ADR 0002)."
+    }
+  ]
+}
+```
+
+An entry for a section that exists fails, as an entry for a file that exists
+fails. An entry omits a full section, not a part of it. To change a part of
+a section, write a deviation below the heading.
+
 ## The index
 
 `docs/README.md` lists each topic file in `docs/`, with one row for each
@@ -58,7 +107,7 @@ the README.
 ## ASD-STE100
 
 Write each new or changed text in ASD-STE100 Simplified Technical English
-([ADR 0002](adr/0002-documentation-is-simplified-technical-english-and-a-readme-keeps-to-the-fundamentals.md)).
+(template [ADR 0002](https://github.com/Bimmiest/repo-template/blob/main/docs/adr/0002-documentation-is-simplified-technical-english-and-a-readme-keeps-to-the-fundamentals.md)).
 The main rules:
 
 - One topic in each sentence, and one instruction in each procedure step.
@@ -111,3 +160,9 @@ wiki to a private repository on the Free plan.
 - **`CLAUDE.md` is one screen.** It does not summarise CONTRIBUTING.md. It names
   the rules that people break, and the rules where a mistake is expensive. It
   has no status and no plan.
+
+## In this repository
+
+Put the text of this repository here, and each deviation from a rule above,
+with its reason ([the rule](#the-template-text-and-the-repository-text)).
+The template has no text of its own.

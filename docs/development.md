@@ -72,8 +72,15 @@ also removes the `ignore` entry or the comment.
 
 ## Traps
 
-Add a trap here when it costs a contributor time and a check cannot find it.
-Give the symptom first, then the cause, then the fix. If a trap belongs to an
-area, put it in the topic file of that area: [ci.md](ci.md),
+Add a trap below [In this repository](#in-this-repository) when it costs a
+contributor time and a check cannot find it. Give the symptom first, then the
+cause, then the fix. If a trap belongs to an area, put it below the same
+heading in the topic file of that area: [ci.md](ci.md),
 [testing.md](testing.md), [code-style.md](code-style.md),
 [dependencies.md](dependencies.md) or [documentation.md](documentation.md).
+
+## In this repository
+
+Put the text of this repository here, and each deviation from a rule above,
+with its reason ([the rule](documentation.md#the-template-text-and-the-repository-text)).
+The template has no text of its own.
