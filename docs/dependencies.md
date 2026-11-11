@@ -38,11 +38,12 @@ The rules for dependencies, and how to review an update. CONTRIBUTING.md has the
 - **CI does not run install scripts** (`npm ci --ignore-scripts`). If a
   dependency needs its install script, name it in the workflow with the
   reason.
-- **Node** has an exact version in `.nvmrc`. `engines`, and
-  `engine-strict=true` in `.npmrc`, hold local installs to it. CI warns on a
-  pull request, and fails each month, when `.nvmrc` is behind the newest
-  patch of its line. Move the major of `@types/node` with `.nvmrc`, not
-  before it.
+- **Node** has an exact version in `.nvmrc`. `engines` and `devEngines` in
+  `package.json`, and `engine-strict=true` in `.npmrc`, refuse a local
+  install on an older Node major. When the major changes, change `.nvmrc`,
+  `engines` and `devEngines` in the same change. CI warns on a pull request,
+  and fails each month, when `.nvmrc` is behind the newest patch of its line.
+  Move the major of `@types/node` with `.nvmrc`, not before it.
 - **Pin each action to a commit SHA**, with the version in a comment after
   it. Dependabot reads the comment and updates the SHA and the comment
   together. The owner of a tag can move it while a job holds a checkout.
