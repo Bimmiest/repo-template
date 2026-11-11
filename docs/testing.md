@@ -7,8 +7,9 @@ type: reference
 The rules for tests, and their reasons. CONTRIBUTING.md has the summary.
 
 Each repository that comes from the template follows these rules. If a
-repository keeps a different rule, it records the rule as a deviation in its
-copy of this file, with the reason ([ADR 0004](adr/0004-one-point-of-coverage-slack-tests-next-to-the-code-and-mutation-on-the-changed-files.md)).
+repository keeps a different rule, it records the rule as a deviation below
+[In this repository](#in-this-repository), with the reason (template
+[ADR 0004](https://github.com/Bimmiest/repo-template/blob/main/docs/adr/0004-one-point-of-coverage-slack-tests-next-to-the-code-and-mutation-on-the-changed-files.md)).
 
 ## The rules
 
@@ -71,10 +72,10 @@ suites that fail together on one change, and that find no more failures.
 | Performance | A change gives the correct result, but too slowly. |
 | Mutation | A test runs a line, and no assertion checks that line. Coverage cannot find this, because coverage counts only the lines that ran. |
 
-For each of its layers, a repository lists in its copy of this file the
-failures that no test found before. Next to each failure, it names the test
-that now finds it. The end-to-end section of `docs/testing.md` in propslab is
-an example.
+For each of its layers, a repository lists below
+[In this repository](#in-this-repository) the failures that no test found
+before. Next to each failure, it names the test that now finds it. The
+end-to-end section of `docs/testing.md` in propslab is an example.
 
 ## Mutation testing
 
@@ -87,7 +88,8 @@ A mutant that survives is a test to write, or an equivalent mutant that you
 record with its reason. Kill a mutant with a test that asserts behaviour,
 not with a test that only moves the number.
 
-A workflow of its own runs Stryker ([ADR 0004](adr/0004-one-point-of-coverage-slack-tests-next-to-the-code-and-mutation-on-the-changed-files.md)):
+A workflow of its own runs Stryker (template
+[ADR 0004](https://github.com/Bimmiest/repo-template/blob/main/docs/adr/0004-one-point-of-coverage-slack-tests-next-to-the-code-and-mutation-on-the-changed-files.md)):
 
 - **A full run each week, and on demand.**
 - **On a pull request, only the changed code.** The run mutates the files in
@@ -111,3 +113,9 @@ tests. Fail if almost all of its mutants survive. A broken runner looks like
 a weak suite, because each mutant survives in both cases. The easy way is to
 run the canary first in each mutation run. propslab does this with its
 `test:mutation:canary` script and `scripts/check-mutation-canary.mjs`.
+
+## In this repository
+
+Put the text of this repository here, and each deviation from a rule above,
+with its reason ([the rule](documentation.md#the-template-text-and-the-repository-text)).
+The template has no text of its own.

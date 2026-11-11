@@ -6,6 +6,8 @@ type: reference
 
 Each CI job, what makes it fail, and where its rule is. CONTRIBUTING.md has the rules.
 
+## The jobs
+
 | Job | What makes it fail | Where the rule is |
 |---|---|---|
 | `verify` | Lint, format, types, the test suite and its coverage floor, a floor that is out of date, the build, the documentation checks of [documentation.md](documentation.md), the licences of production dependencies, and a file of the template that is missing | The scripts in `package.json`, `vitest.config.ts`, `.docs-check.json`, `.licence-allowlist.json`, `.baseline-exceptions.json` |
@@ -36,3 +38,9 @@ Compare a full run with a full run:
 A test that runs alone proves nothing. It can pass alone and fail in the order
 of the full suite. A push cancels the run of that branch that is in progress.
 Thus, do not start a run again and push at the same time.
+
+## In this repository
+
+Put the text of this repository here, and each deviation from a rule above,
+with its reason ([the rule](documentation.md#the-template-text-and-the-repository-text)).
+The template has no text of its own.

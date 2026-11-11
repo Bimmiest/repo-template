@@ -114,6 +114,8 @@ For the `node-ts`, `rust` and `opentofu-ansible` stacks:
   `code-style.md`, `dependencies.md` and `documentation.md`.
 - A `type:` in the frontmatter of each topic file, and a row for each topic
   file in `docs/README.md`.
+- In each topic file, the text of the template first, and the text of the
+  repository below the last heading, `## In this repository`.
 - The ASD-STE100 rules, which the docs check gives as warnings.
 
 [documentation.md](documentation.md) has the detail.

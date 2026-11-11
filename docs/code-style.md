@@ -6,6 +6,8 @@ type: reference
 
 The rules for the layout, the lint and the types of the code, and for code comments, with their reasons. CONTRIBUTING.md has the summary.
 
+## The rules
+
 - **Prettier controls the layout** (`npm run format`). The configuration is
   `.prettierrc.json`. Put generated files in `.prettierignore`, with the name
   of the script that makes them.
@@ -19,16 +21,16 @@ The rules for the layout, the lint and the types of the code, and for code comme
 - **Do not use `!` in code that ships.** Narrow the type instead: destructure
   the value, iterate instead of index, or compare with `undefined`. Tests can
   use `!`.
-- **Each diagnostic has a code** (#56). This applies to a program that gives
-  diagnostics (errors, warnings, findings) to a user or to a caller. The
-  diagnostic type has a required `code` field, and its type is one union.
-  Thus the compiler refuses a diagnostic with no code, or with a code that is
-  not in the union. The message text stays next to the condition that gives
-  it. A test asserts the code and the data, never a part of the message, so a
-  change of the words breaks no behaviour test. Lint refuses `.message` in an
-  `expect(...)` and in `expect.objectContaining(...)` in a test. Assert a
-  thrown error with `toThrow()`. A code is public after its first release: to
-  rename or remove a code is a major version.
+- **Each diagnostic has a code** (Bimmiest/repo-template#56). This applies
+  to a program that gives diagnostics (errors, warnings, findings) to a user
+  or to a caller. The diagnostic type has a required `code` field, and its
+  type is one union. Thus the compiler refuses a diagnostic with no code, or
+  with a code that is not in the union. The message text stays next to the
+  condition that gives it. A test asserts the code and the data, never a part
+  of the message, so a change of the words breaks no behaviour test. Lint
+  refuses `.message` in an `expect(...)` and in `expect.objectContaining(...)`
+  in a test. Assert a thrown error with `toThrow()`. A code is public after
+  its first release: to rename or remove a code is a major version.
 - **A `switch` over a union has no `default`.** Then the exhaustiveness rule
   makes a new member a compile error at each `switch`.
 - **Size limits:** 100 lines for each function and a cyclomatic complexity of
@@ -44,14 +46,15 @@ The rules for the layout, the lint and the types of the code, and for code comme
   layer must not import, and why. A test lints a real import line against
   the rule, so that a change to the configuration cannot stop the rule
   without a failure. `eslint.config.js` has a commented example of the block.
-- **Do not keep state that changes at module level** (#55). State that
-  changes belongs to the object that owns the operation, and the operation
-  gets it in its context. A module-level `let` is a hidden input to each
-  function that reads it. Two callers in one process share it, and a test
-  cannot give it a different value. Lint refuses a `let` at the top level of
-  a module, except in a test, where a `let` that `beforeEach` sets shares a
-  fixture. Lint does not find a module-level `const` that holds a `Map` or a
-  `Set`, so a reviewer must find a cache of that form.
+- **Do not keep state that changes at module level**
+  (Bimmiest/repo-template#55). State that changes belongs to the object that
+  owns the operation, and the operation gets it in its context. A
+  module-level `let` is a hidden input to each function that reads it. Two
+  callers in one process share it, and a test cannot give it a different
+  value. Lint refuses a `let` at the top level of a module, except in a
+  test, where a `let` that `beforeEach` sets shares a fixture. Lint does not
+  find a module-level `const` that holds a `Map` or a `Set`, so a reviewer
+  must find a cache of that form.
 
   If a block for the same files has a `no-restricted-syntax` list, merge the
   two lists into one. A later block replaces the list of an earlier block,
@@ -101,3 +104,9 @@ comments (2021).
 `npm run lint` finds the rules 8 and 9: code in a `//` comment, and a TODO,
 FIXME or XXX that has no issue (`scripts/eslint-comments.mjs`). A reviewer
 finds the other rules.
+
+## In this repository
+
+Put the text of this repository here, and each deviation from a rule above,
+with its reason ([the rule](documentation.md#the-template-text-and-the-repository-text)).
+The template has no text of its own.
