@@ -94,6 +94,15 @@ jobs:
       - name: Documentation links and the ADR index
         uses: Bimmiest/shared-workflows/.github/actions/docs-check@171cd386717395c01be5e23ab926823c7b246cf6 # v1.11.0
 
+      # .nvmrc is in the Node ranges of package.json, and on the major of
+      # their lower bounds, so a move to the next major changes all three
+      # (docs/dependencies.md). engines-major, because the template is an
+      # app: its `engines` is its own toolchain. A library sets it false.
+      - name: .nvmrc, engines and devEngines agree on Node
+        uses: Bimmiest/shared-workflows/.github/actions/node-version-check@6d9565a7d992fe10a1368249d3bdef47688a08c5 # v1.13.0
+        with:
+          engines-major: 'true'
+
       # Each file of repo-template's baseline is here, or excepted in
       # .baseline-exceptions.json with its reason.
       - name: The baseline files of repo-template
