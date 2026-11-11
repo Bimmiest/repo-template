@@ -62,6 +62,7 @@ to check when you change it.
 | [0001](0001-conventions-come-from-the-template-and-the-shared-workflows.md) | Conventions come from the template and the shared workflows | Accepted |
 | [0002](0002-documentation-is-simplified-technical-english-and-a-readme-keeps-to-the-fundamentals.md) | Documentation is Simplified Technical English, and a README keeps to the fundamentals | Accepted |
 | [0003](0003-code-owners-are-asked-to-review-a-gate-change-and-no-review-is-required.md) | Code owners are asked to review a gate change, and no review is required | Accepted |
+| [0004](0004-one-point-of-coverage-slack-tests-next-to-the-code-and-mutation-on-the-changed-files.md) | One point of coverage slack, tests next to the code, and mutation on the changed files | Accepted |
 
 ## Numbers with no record
 
