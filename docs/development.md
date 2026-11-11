@@ -12,8 +12,17 @@ of a failure. The rules are in [CONTRIBUTING.md](../CONTRIBUTING.md).
 1. Install the Node version in `.nvmrc`: `nvm install`.
 2. Install the dependencies: `npm ci`.
 
-`engine-strict=true` in `.npmrc` refuses a different Node version. If
-`npm ci` stops with an engine error, run `nvm use` and try again.
+`devEngines` in `package.json` refuses a Node version outside its range,
+before npm resolves the dependencies. The error is `EBADDEVENGINES`, with the
+required and the current version. npm also checks `devEngines` before
+`npm run`, so a gate on a wrong Node stops with the same error. If you get
+this error, run `nvm use` and try again.
+
+`engine-strict=true` in `.npmrc` refuses a dependency whose `engines` range
+does not include your Node, with `EBADENGINE`. It also refuses a wrong Node
+on an npm older than 10.9.0, which ignores `devEngines`. That npm checks
+`engines` only after it resolves the dependencies, so a resolution error can
+come first.
 
 ## Run the gates
 
