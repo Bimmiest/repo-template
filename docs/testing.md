@@ -8,7 +8,7 @@ The rules for tests, and their reasons. CONTRIBUTING.md has the summary.
 
 Each repository that comes from the template follows these rules. If a
 repository keeps a different rule, it records the rule as a deviation in its
-copy of this file, with the reason (#49).
+copy of this file, with the reason ([ADR 0004](adr/0004-one-point-of-coverage-slack-tests-next-to-the-code-and-mutation-on-the-changed-files.md)).
 
 ## The rules
 
@@ -87,7 +87,7 @@ A mutant that survives is a test to write, or an equivalent mutant that you
 record with its reason. Kill a mutant with a test that asserts behaviour,
 not with a test that only moves the number.
 
-A workflow of its own runs Stryker (#49):
+A workflow of its own runs Stryker ([ADR 0004](adr/0004-one-point-of-coverage-slack-tests-next-to-the-code-and-mutation-on-the-changed-files.md)):
 
 - **A full run each week, and on demand.**
 - **On a pull request, only the changed code.** The run mutates the files in
