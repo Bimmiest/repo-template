@@ -33,7 +33,10 @@ The rules for the layout, the lint and the types of the code, and for code comme
   makes a new member a compile error at each `switch`.
 - **Size limits:** 100 lines for each function and a cyclomatic complexity of
   25. Blank lines and comments do not count, so continue to write the
-  reasons. Tests do not have these limits.
+  reasons. A function has a maximum of four parameters, and a function that
+  needs more takes one options object, so that each call names its values.
+  Tests do not have the limits of length and complexity, but they keep the
+  limit of four parameters.
 - **Imports** are in three groups: Node built-ins, packages, then the files
   of the project. `eslint --fix` sorts them.
 - **A layer that must stay pure** (for example a simulation engine or a

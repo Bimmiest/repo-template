@@ -144,11 +144,19 @@ export default defineConfig([
     rules: {
       'max-lines-per-function': ['error', { max: 100, skipBlankLines: true, skipComments: true }],
       complexity: ['error', 25],
+      // Past four positional parameters a call is a row of bare values matched
+      // by position, and a caller passes a default only to reach a later one,
+      // so a function that needs more takes one options object (#54). Four,
+      // not three: three reports callbacks whose list a library defines, where
+      // the author does not choose it.
+      'max-params': ['error', 4],
     },
   },
   {
-    // Tests are exempt: a describe() callback holds a whole suite, so its
-    // length counts cases, and a table of cases is not branching logic.
+    // Tests are exempt from length and branching: a describe() callback holds a
+    // whole suite, so its length counts cases, and a table of cases is not
+    // branching logic. `max-params` stays on, because a test helper with many
+    // positional arguments is as hard to read as shipped code.
     files: ['**/*.test.{ts,mts,mjs}'],
     rules: {
       'max-lines-per-function': 'off',
