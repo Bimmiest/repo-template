@@ -41,7 +41,9 @@ The rules for dependencies, and how to review an update. CONTRIBUTING.md has the
 - **Node** has an exact version in `.nvmrc`. `engines` and `devEngines` in
   `package.json`, and `engine-strict=true` in `.npmrc`, refuse a local
   install on an older Node major. When the major changes, change `.nvmrc`,
-  `engines` and `devEngines` in the same change. CI warns on a pull request,
+  `engines` and `devEngines` in the same change. CI fails a pull request when
+  `.nvmrc` is outside the range of `engines` or `devEngines`, or when the
+  lower bound of a range is on a different major. CI warns on a pull request,
   and fails each month, when `.nvmrc` is behind the newest patch of its line.
   Move the major of `@types/node` with `.nvmrc`, not before it.
 - **Pin each action to a commit SHA**, with the version in a comment after
