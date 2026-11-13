@@ -10,7 +10,7 @@ Each CI job, what makes it fail, and where its rule is. CONTRIBUTING.md has the 
 
 | Job | What makes it fail | Where the rule is |
 |---|---|---|
-| `verify` | Lint, format, types, the test suite and its coverage floor, a floor that is out of date, the build, the documentation checks of [documentation.md](documentation.md), the licences of production dependencies, and a file of the template that is missing | The scripts in `package.json`, `vitest.config.ts`, `.docs-check.json`, `.licence-allowlist.json`, `.baseline-exceptions.json` |
+| `verify` | A finding of [the rule checks](#the-rule-checks), lint, format, types, the test suite and its coverage floor, a floor that is out of date, the build, the documentation checks of [documentation.md](documentation.md), the licences of production dependencies, and a file of the template that is missing | `scripts/check.mjs`, the scripts in `package.json`, `vitest.config.ts`, `.docs-check.json`, `.licence-allowlist.json`, `.baseline-exceptions.json` |
 | `audit` | A high or critical advisory in a production dependency, with no exception | `.audit-exceptions.json` |
 | `dependency-review` | A pull request that adds a dependency with a high advisory | The GitHub dependency graph |
 | `workflow-lint` | actionlint and zizmor findings in `.github/` | The workflows |
@@ -23,6 +23,27 @@ A red shared check tells you what to change. Each job can fail
 independently, on purpose: a new advisory must not hide the result of the
 test suite. If the repository gets a browser suite, it is a job of its own
 for the same reason.
+
+## The rule checks
+
+`scripts/check.mjs` checks the mechanical rules of `CLAUDE.md`. On a pull
+request, the `verify` job runs it on the change against the base branch. To
+run it before you push, see [development.md](development.md#check-the-rules-of-claudemd).
+The table gives each rule, and the check that enforces it in CI.
+
+| Rule | It fails when | Enforced in CI by |
+|---|---|---|
+| `run-expression` | The `run:` of a step contains `${{` | The script. zizmor finds only the expressions that an attacker can control, for example `github.event.*` |
+| `uses-pin` | A `uses:` is not `owner/repo@<40-character SHA> # vX.Y.Z`, and does not start with `./` | The script. zizmor finds a reference with no SHA, but not a SHA with no version comment |
+| `accepted-adr` | A change edits or deletes an ADR whose status is Accepted. A change of the Status item only, to `Superseded by NNNN`, passes | The script |
+| `coverage-floor` | A number in a `thresholds` object of `vitest.config.*` or `stryker.config.*` is lower than before, or is not there | The script. The coverage ratchet compares each floor with its measurement, not with its old value |
+| `eslint-disable` | A new line of a source file has an `eslint-disable` directive | The script |
+| `branch-name` | The branch does not match `<type>/<short-description>-<issue-number>` | PR hygiene. In CI, HEAD has no branch, and the script does not check one |
+| `wasm-pair` | A change has `pcre2.wasm` or `pcre2.wasm.sha256`, and not the other one, in the same directory | The script |
+
+The script reads each file as text, and imports and runs nothing from it. The
+comment at the top of each file in `scripts/checks/` gives the limits of the
+check.
 
 ## A check that fails only in CI
 

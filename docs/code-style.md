@@ -15,9 +15,10 @@ The rules for the layout, the lint and the types of the code, and for code comme
   `strictTypeChecked`, with type information. Each rule that differs from
   the preset has its reason next to it in `eslint.config.js`. If a rule is
   wrong for this code, turn it off there, with a sentence that says why. Do
-  not use `eslint-disable` at the call site. One deliberate exception (for
-  example, a deprecated API that you use on purpose) gets an inline disable
-  that says so.
+  not use `eslint-disable` at the call site: `scripts/check.mjs` fails a new
+  one ([the rule checks](ci.md#the-rule-checks)). One deliberate exception
+  (for example, a deprecated API that you use on purpose) gets a block for
+  its file in the config, with the reason.
 - **Do not use `!` in code that ships.** Narrow the type instead: destructure
   the value, iterate instead of index, or compare with `undefined`. Tests can
   use `!`.

@@ -42,6 +42,28 @@ repository, and run its script from here:
 node ../shared-workflows/.github/actions/docs-check/docs-check.mjs
 ```
 
+## Check the rules of CLAUDE.md
+
+`scripts/check.mjs` checks the mechanical rules of `CLAUDE.md`. CI runs it
+on each pull request ([the rule checks](ci.md#the-rule-checks)). Run it
+before you push, and you get the verdict of CI:
+
+```bash
+node scripts/check.mjs --base origin/main   # the commits of your branch
+node scripts/check.mjs --staged             # the staged files, against HEAD
+node scripts/check.mjs path/to/file         # the files on disk, against HEAD
+```
+
+The script prints each finding on one line, as
+`file:line: rule: what to change`. It exits with 1 when it finds a problem,
+with 0 when it finds none, and with 2 when it cannot run. To run some rules
+only, add `--only <rule>,<rule>`.
+
+The `branch-name` rule reads the branch pattern of PR hygiene from a clone of
+`shared-workflows` next to this repository. If there is no clone, the script
+tells you that it did not check the branch. To use a clone in a different
+directory, add `--shared-workflows <dir>`.
+
 ## Tech debt
 
 Tech debt is work that operates now but must change later. An issue with the

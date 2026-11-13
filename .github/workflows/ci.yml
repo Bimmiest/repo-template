@@ -46,9 +46,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # The rule checks below compare the pull request with its base
+          # branch, so they need the base branch and the merge base. Without
+          # credentials, no later step can fetch them.
+          fetch-depth: 0
 
       # Node from .nvmrc, the npm cache, `npm ci --ignore-scripts`.
       - uses: Bimmiest/shared-workflows/.github/actions/setup-node-project@171cd386717395c01be5e23ab926823c7b246cf6 # v1.11.0
+
+      # The mechanical rules of CLAUDE.md, on what the pull request changes
+      # (scripts/check.mjs, docs/ci.md#the-rule-checks): `${{ }}` in a `run:`,
+      # an action without a SHA and its version, an edit of an accepted ADR, a
+      # lower coverage or mutation floor, a new `eslint-disable`, and a
+      # binary without its checksum. First, because it reads text and needs no
+      # build. The branch rule is PR hygiene's; HEAD is detached here, so the
+      # script leaves it. Only a pull request has a base to compare with, and
+      # the base reaches the shell through `env:`, as each expression does.
+      - name: The rules of CLAUDE.md
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: node scripts/check.mjs --base "origin/$BASE_REF"
 
       # Lint before typecheck: it is the faster of the two and fails on the
       # cheaper class of mistake, so a contributor who broke both hears about

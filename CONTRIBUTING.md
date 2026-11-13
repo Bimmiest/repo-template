@@ -89,7 +89,9 @@ description is for the reviewer. Write both to the standard above.
 
 Run the gates before you open a pull request.
 [docs/development.md](docs/development.md#run-the-gates) gives the commands.
-CI runs the same commands and the shared checks below.
+CI runs the same commands and the shared checks below. It also runs
+`scripts/check.mjs`, which checks the mechanical rules of `CLAUDE.md`
+([the rule checks](docs/ci.md#the-rule-checks)).
 
 The pull request template has four sections:
 
