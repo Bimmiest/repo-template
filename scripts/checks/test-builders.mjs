@@ -17,8 +17,18 @@ export function fileChange(path, { before = null, after = null } = {}) {
  * A change of `files`, with no branch, and a tree that has the paths in
  * `tree`. `trailers` are the `Floor-Lowered:` values of its commit messages:
  * by default it has commit messages with none, and null gives a change with
- * no commit message yet.
+ * no commit message yet. `texts` are the other files after the change, by
+ * path: the files of the change replace them, as `readTree` does.
  */
-export function change(files, { branch = null, branchPattern = null, tree = [], trailers = [] } = {}) {
-  return { files, branch, branchPattern, exists: (path) => tree.includes(path), trailers };
+export function change(files, { branch = null, branchPattern = null, tree = [], trailers = [], texts = {} } = {}) {
+  const after = (select) => {
+    const all = new Map(Object.entries(texts));
+    for (const file of files) {
+      const text = file.after();
+      if (text === null) all.delete(file.path);
+      else all.set(file.path, text);
+    }
+    return new Map([...all].filter(([path]) => select(path)));
+  };
+  return { files, branch, branchPattern, exists: (path) => tree.includes(path), trailers, texts: after };
 }

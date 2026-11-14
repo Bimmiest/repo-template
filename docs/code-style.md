@@ -102,10 +102,21 @@ comments (2021).
     `shortcut: <the limit>, <when to change it>.`
 11. **When your change makes a comment false, change the comment in the same
     commit.**
+12. **Name a constant, and do not repeat its value.** A comment that names
+    `CACHE_LIMIT` stays true when the value changes. A measurement goes in an
+    ADR or in a test, and the comment links it.
 
 `npm run lint` finds the rules 8 and 9: code in a `//` comment, and a TODO,
-FIXME or XXX that has no issue (`scripts/eslint-comments.mjs`). A reviewer
-finds the other rules.
+FIXME or XXX that has no issue (`scripts/eslint-comments.mjs`).
+`scripts/check.mjs` finds a part of the rules 11 and 12: a name between
+backticks that is in no source file ([the rule checks](ci.md#the-rule-checks)).
+A reviewer finds the other rules.
+
+For the check, a name is one word with a `_` between two letters or digits,
+or a capital letter after a small letter or a digit: `CACHE_LIMIT` or
+`safeRegex`. The check does not read `npm ci`, `true` or `URL` as names. In
+`Cache.get()`, it reads each part that is a name. Write a name from outside
+the repository, for example an option of a library, with no backticks.
 
 ## In this repository
 
