@@ -13,6 +13,8 @@
 /.licence-allowlist.json @Bimmiest
 /eslint.config.js @Bimmiest
 /scripts/eslint-comments.mjs @Bimmiest
+/scripts/check.mjs @Bimmiest
+/scripts/checks/ @Bimmiest
 /scripts/lint-allowlist.json @Bimmiest
 /tsconfig.base.json @Bimmiest
 /vitest.config.ts @Bimmiest
