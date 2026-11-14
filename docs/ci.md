@@ -37,7 +37,7 @@ hooks that run it.
 | Rule | It fails when | Enforced in CI by | Also runs in |
 |---|---|---|---|
 | `run-expression` | The `run:` of a step contains `${{` | The script. zizmor finds only the expressions that an attacker can control, for example `github.event.*` | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
-| `uses-pin` | A `uses:` is not `owner/repo@<40-character SHA> # vX.Y.Z`, and does not start with `./` | The script. zizmor finds a reference with no SHA, but not a SHA with no version comment | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
+| `uses-pin` | A `uses:` is not `owner/repo@<40-character SHA> # vX.Y.Z` or `owner/repo@<40-character SHA> # <branch> branch, YYYY-MM-DD`, and does not start with `./`. [dependencies.md](dependencies.md#the-rules) says when to use the branch form | The script. zizmor finds a reference with no SHA, but not a SHA with no version comment | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
 | `accepted-adr` | A change edits or deletes an ADR whose status is Accepted. A change of the Status item only, to `Superseded by NNNN`, passes | The script | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
 | `coverage-floor` | A number in a `thresholds` object of `vitest.config.*` or `stryker.config.*` is lower than before, or is not there | The script. The coverage ratchet compares each floor with its measurement, not with its old value | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
 | `eslint-disable` | A new line of a source file has an `eslint-disable` directive | The script | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |

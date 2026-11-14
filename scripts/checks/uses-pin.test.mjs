@@ -12,6 +12,9 @@ describe('uses-pin', () => {
     [`owner/repo/path@${SHA}`, '# v1.2.3 # zizmor: ignore[x]'],
     ['./.github/actions/docs-check', '# zizmor: ignore[self-repository]'],
     ['./.github/workflows/mutation.yml', null],
+    [`Azure/static-web-apps-deploy@${SHA}`, '# v1 branch, 2024-09-11'],
+    [`owner/repo@${SHA}`, '# release/2.x branch, 2026-02-28'],
+    [`owner/repo@${SHA}`, '# main branch, 2024-02-29 # zizmor: ignore[x]'],
   ])('passes %s %s', (value, comment) => {
     expect(problem(value, comment)).toBeNull();
   });
@@ -24,8 +27,19 @@ describe('uses-pin', () => {
     ['actions/checkout', null],
     ['docker://alpine:3.20', null],
     [`actions/checkout@${SHA}`, null],
-    [`actions/checkout@${SHA}`, '# v1 branch, 2024-09-11'],
     [`actions/checkout@${SHA}`, '# 7.0.1'],
+    [`actions/checkout@${SHA}`, '# the head of main, read in September'],
+    [`actions/checkout@${SHA}`, '# v1'],
+    [`actions/checkout@${SHA}`, '# v1 branch'],
+    [`actions/checkout@${SHA}`, '# branch v1, 2024-09-11'],
+    [`actions/checkout@${SHA}`, '# v1 branch 2024-09-11'],
+    [`actions/checkout@${SHA}`, '# v1 branch, 11-09-2024'],
+    [`actions/checkout@${SHA}`, '# v1 branch, 2024-9-11'],
+    [`actions/checkout@${SHA}`, '# v1 branch, 2023-02-29'],
+    [`actions/checkout@${SHA}`, '# v1 branch, 2024-13-01'],
+    [`actions/checkout@${SHA}`, '# branch, 2024-09-11'],
+    ['Azure/static-web-apps-deploy@v1', '# v1 branch, 2024-09-11'],
+    ['Azure/static-web-apps-deploy', '# v1 branch, 2024-09-11'],
   ])('fails %s %s', (value, comment) => {
     expect(problem(value, comment)).not.toBeNull();
   });
@@ -37,6 +51,19 @@ describe('uses-pin', () => {
       { rule: 'uses-pin', file: WORKFLOW, line: 3 },
       { rule: 'uses-pin', file: WORKFLOW, line: 7 },
     ]);
+  });
+
+  it('passes the branch form in a workflow, as a consumer writes it (#73)', () => {
+    const after = [
+      'jobs:',
+      '  deploy:',
+      '    steps:',
+      '      - name: Deploy',
+      '        uses: Azure/static-web-apps-deploy@4d27395796ac319302594769cfe812bd207490b1 # v1 branch, 2024-09-11',
+      `      - uses: actions/checkout@${SHA} # latest`,
+    ].join('\n');
+    const found = check(change([fileChange(WORKFLOW, { before: '', after })]));
+    expect(found.map(({ line }) => line)).toEqual([6]);
   });
 
   it('reads only workflow and action files, and not a deleted one', () => {

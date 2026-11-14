@@ -51,6 +51,12 @@ The rules for dependencies, and how to review an update. CONTRIBUTING.md has the
 - **Pin each action to a commit SHA**, with the version in a comment after
   it. Dependabot reads the comment and updates the SHA and the comment
   together. The owner of a tag can move it while a job holds a checkout.
+- **If the upstream of an action has no `vX.Y.Z` tag, pin the SHA of the
+  branch head**, with the branch and the date in the comment:
+  `@<sha> # <branch> branch, YYYY-MM-DD`. The date is the day that you read
+  the head with `git ls-remote`. Dependabot cannot update this pin, so add an
+  `ignore` entry for the action in `.github/dependabot.yml`, with the reason.
+  The date shows the age of the pin (Bimmiest/repo-template#73).
 
 ## In this repository
 
