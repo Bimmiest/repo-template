@@ -1,0 +1,37 @@
+#!/bin/sh
+# The fast part of the gates, on the staged files only, so that the hook
+# takes a few seconds and nobody needs `--no-verify` to get past it (#47).
+# The full suite, coverage and the build stay in CI, which enforces each rule
+# again: `git commit --no-verify` skips this hook, and only CI enforces
+# (docs/adr/0006-one-rule-script-three-callers-and-only-ci-enforces.md).
+#
+# Each file name goes from git to the tool through `-z` and `xargs -0`, never
+# through the shell, so a name with a space or a quote stays one argument.
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+# The files that `npm run format:check` and `npm run lint` cover. A pathspec
+# with no slash matches the name in each directory.
+set -- '*.ts' '*.mts' '*.js' '*.mjs'
+
+staged() {
+  git diff --cached --name-only --diff-filter=ACMR -z -- "$@"
+}
+
+if git diff --cached --quiet --diff-filter=ACMR -- "$@"; then
+  :
+elif [ -x node_modules/.bin/prettier ] && [ -x node_modules/.bin/eslint ]; then
+  # Prettier and ESLint read the file on disk, so a file with unstaged
+  # changes is checked as it is on disk, not as it is in the index.
+  staged "$@" | xargs -0 node_modules/.bin/prettier --check --ignore-unknown
+  staged "$@" | xargs -0 node_modules/.bin/eslint --no-warn-ignored
+else
+  echo "pre-commit: no node_modules, so Prettier and ESLint did not run. Run \`npm ci\`." >&2
+fi
+
+# Each rule of CLAUDE.md that a commit can break. The branch rule runs at the
+# push, because a branch gets its final name before the push.
+node scripts/check.mjs --staged \
+  --only run-expression,uses-pin,accepted-adr,coverage-floor,eslint-disable,wasm-pair

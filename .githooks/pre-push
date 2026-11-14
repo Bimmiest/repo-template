@@ -1,0 +1,30 @@
+#!/bin/sh
+# The branch rule and the type check, before the commits leave this
+# computer (#47). The tests stay in CI, which enforces each rule again: `git
+# push --no-verify` skips this hook, and only CI enforces
+# (docs/adr/0006-one-rule-script-three-callers-and-only-ci-enforces.md).
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+# Git gives one line for each ref that it pushes: the local ref and SHA, then
+# the remote ref and SHA. PR hygiene sees the name of the remote branch. A
+# deletion has a local SHA of zeros, and a tag is not a branch.
+status=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac
+  case "$remote_ref" in
+    refs/heads/*)
+      branch=${remote_ref#refs/heads/}
+      node scripts/check.mjs --base HEAD --only branch-name --branch "$branch" || status=1
+      ;;
+  esac
+done
+[ "$status" -eq 0 ] || exit 1
+
+if [ -x node_modules/.bin/tsc ]; then
+  npm run --silent typecheck
+else
+  echo "pre-push: no node_modules, so the type check did not run. Run \`npm ci\`." >&2
+fi
