@@ -25,6 +25,7 @@ Each repository has all of the core set, whatever its stack.
 | Entry | `README.md` | The fundamentals, in 200 lines or fewer |
 | Contribution rules | `CONTRIBUTING.md` | The rules only, in 300 lines or fewer |
 | Agent rules | `CLAUDE.md` | 80 lines or fewer. An `AGENTS.md` is a one-line pointer to it |
+| Claude Code settings | `.claude/settings.json` | The hooks and the deny rules that check the rules of `CLAUDE.md`. On GitHub only. A repository with no Claude Code records an exception |
 | Security policy | `SECURITY.md` | How to report a vulnerability |
 | Licence | `LICENSE` | Only in a public repository |
 | Release record | `CHANGELOG.md`, or one line in the README | See [Releases](#releases) |
