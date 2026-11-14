@@ -54,11 +54,14 @@ it posts to the alerts channel. A red run that nobody sees is not a check.
 
 - Each job has `timeout-minutes`.
 - Each action is pinned to a commit SHA, with its version in a comment:
-  `@<sha> # vX.Y.Z`.
+  `@<sha> # vX.Y.Z`. If the upstream has no `vX.Y.Z` tag, the comment names
+  the branch and the date that a person read its head:
+  `@<sha> # <branch> branch, YYYY-MM-DD`.
 - Each container image is pinned as `<image>:<tag>@sha256:<digest>`.
 - Each checkout sets `persist-credentials: false`.
 
-The update bot can bump a pin only in these two forms. A SHA with no version
+The update bot can bump an action pin only in the `vX.Y.Z` form, and an
+image pin only with its tag. A SHA with a branch comment or with no version
 comment, or a digest with no tag, stays where it is until a person moves it.
 
 ### Updates
