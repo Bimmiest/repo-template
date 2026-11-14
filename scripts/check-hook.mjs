@@ -31,7 +31,9 @@ import { blob, currentBranch, evaluate, format, fromBase, fromIndex, fromWorkTre
 /**
  * The rules that one file can break. `wasm-pair` judges two files of one
  * commit, and a Write or an Edit has one file, so it runs at `git commit`.
- * `branch-name` judges a commit or a push, not a file.
+ * `known-identifier` runs at `git commit` too: a rename changes the name and
+ * the comments that name it in more than one file, so each edit between
+ * them breaks the rule. `branch-name` judges a commit or a push, not a file.
  */
 const FILE_RULES = ['run-expression', 'uses-pin', 'accepted-adr', 'coverage-floor', 'eslint-disable'];
 
@@ -228,9 +230,9 @@ async function shellCall(context, command) {
  * that is clean.
  */
 async function commitCall(context, root, workTree) {
-  const { files, exists } = workTree ? fromWorkTree(root) : fromIndex(root);
+  const { files, exists, side } = workTree ? fromWorkTree(root) : fromIndex(root);
   const { only, sharedWorkflows } = context;
-  return evaluate({ root, files, exists, branch: currentBranch(root), only, sharedWorkflows });
+  return evaluate({ root, files, exists, branch: currentBranch(root), only, sharedWorkflows, side });
 }
 
 /**
@@ -243,8 +245,9 @@ async function pushCall(context, root, args) {
   const result = { findings: [], notes: [] };
   if (git(root, ['rev-parse', '--verify', '--quiet', `${BASE}^{commit}`]) !== null) {
     try {
-      const { files, exists, trailers } = fromBase(root, BASE);
-      const base = await evaluate({ root, files, exists, branch: null, only: fileRules, sharedWorkflows, trailers });
+      const { files, exists, trailers, side } = fromBase(root, BASE);
+      const branch = null;
+      const base = await evaluate({ root, files, exists, branch, only: fileRules, sharedWorkflows, trailers, side });
       result.findings.push(...base.findings);
       result.notes.push(...base.notes);
     } catch (error) {

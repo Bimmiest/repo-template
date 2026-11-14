@@ -244,6 +244,19 @@ describe('--hook, Bash', () => {
     expect(rules(await commit('cd src && git commit -m "x" 2>&1'))).toEqual(['eslint-disable']);
   });
 
+  it('checks a name in a comment at git commit and git push, and not at an edit, which a rename spans (#57)', async () => {
+    const root = repository();
+    git(root, 'update-ref', 'refs/remotes/origin/main', 'HEAD');
+    const content = 'export const a = 1;\n// `renamedLater` is next.\n';
+    const input = { file_path: path.join(root, 'src/a.ts'), content };
+    expect(await runHook(root, { tool: 'Write', input })).toMatchObject({ code: 0 });
+    write(root, { 'src/a.ts': content });
+    const bash = (command) => runHook(root, { tool: 'Bash', input: { command } });
+    expect(rules(await bash('git commit -am "x"'))).toEqual(['known-identifier']);
+    git(root, 'commit', '-q', '-am', 'x');
+    expect(rules(await bash('git push'))).toEqual(['known-identifier']);
+  });
+
   it('checks the branch at git commit, with the pattern of PR hygiene', async () => {
     const root = repository();
     git(root, 'checkout', '-q', '-b', 'claude/x');

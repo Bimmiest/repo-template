@@ -34,4 +34,4 @@ fi
 # Each rule of CLAUDE.md that a commit can break. The branch rule runs at the
 # push, because a branch gets its final name before the push.
 node scripts/check.mjs --staged \
-  --only run-expression,uses-pin,accepted-adr,coverage-floor,eslint-disable,wasm-pair
+  --only run-expression,uses-pin,accepted-adr,coverage-floor,eslint-disable,wasm-pair,known-identifier

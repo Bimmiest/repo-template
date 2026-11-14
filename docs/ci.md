@@ -43,6 +43,7 @@ hooks that run it.
 | `eslint-disable` | A new line of a source file has an `eslint-disable` directive | The script | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
 | `branch-name` | The branch does not match `<type>/<short-description>-<issue-number>` | PR hygiene. In CI, HEAD has no branch, and the script does not check one | `pre-push`, and the Claude Code hook at a commit and a push |
 | `wasm-pair` | A change has `pcre2.wasm` or `pcre2.wasm.sha256`, and not the other one, in the same directory | The script | `pre-commit`, and the Claude Code hook at a commit and a push. An edit changes one file, so the hook does not check the pair at an edit |
+| `known-identifier` | A new or changed comment names, between backticks, an identifier that is in no source file after the change. Also a comment in any file that names an identifier that the change removes. [code-style.md](code-style.md#code-comments) says what a name is | The script | `pre-commit`, and the Claude Code hook at a commit and a push. A rename changes more than one file, so the hook does not check a name at an edit |
 
 The script reads each file as text, and imports and runs nothing from it. The
 comment at the top of each file in `scripts/checks/` gives the limits of the

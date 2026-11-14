@@ -28,7 +28,7 @@
  * argument array, never through a shell, and no content is run.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -37,6 +37,7 @@ import * as acceptedAdr from './checks/accepted-adr.mjs';
 import * as branchName from './checks/branch-name.mjs';
 import * as coverageFloor from './checks/coverage-floor.mjs';
 import * as eslintDisable from './checks/eslint-disable.mjs';
+import * as knownIdentifier from './checks/known-identifier.mjs';
 import * as runExpression from './checks/run-expression.mjs';
 import * as usesPin from './checks/uses-pin.mjs';
 import * as wasmPair from './checks/wasm-pair.mjs';
@@ -57,11 +58,20 @@ import * as wasmPair from './checks/wasm-pair.mjs';
  * @property {(path: string) => boolean} exists  Whether the path is in the tree after the change.
  * @property {string[] | null} trailers  The value of each `Floor-Lowered:` trailer in the commit messages of
  *   the change, or null when the change has no commit message yet (the index, a file, an edit).
+ * @property {(select: (path: string) => boolean) => Map<string, string>} texts  The text of each tracked text
+ *   file after the change whose path `select` accepts, by path. It reads the whole tree, so call it once.
+ */
+
+/**
+ * Where the files after a change are: in the commit HEAD (`--base`), in the
+ * index (`--staged`), or in the work tree (a path, and the hooks).
+ * @typedef {'HEAD' | 'index' | 'work tree'} Side
  */
 
 /**
  * @typedef {object} Finding
- * @property {'run-expression' | 'uses-pin' | 'accepted-adr' | 'coverage-floor' | 'eslint-disable' | 'branch-name' | 'wasm-pair'} rule
+ * @property {'run-expression' | 'uses-pin' | 'accepted-adr' | 'coverage-floor' | 'eslint-disable' | 'branch-name' | 'wasm-pair' |
+ *   'known-identifier'} rule
  * @property {string | null} file  The file, or null for a finding about the branch or a commit message.
  * @property {number} line  The line from 1, or 0 when the finding has no line.
  * @property {string} message  What to change.
@@ -70,8 +80,17 @@ import * as wasmPair from './checks/wasm-pair.mjs';
  * @property {string} [trailer]  The commit trailer that records a floor that falls, when one can.
  */
 
-/** Each check, in the order of the list in #47. */
-export const CHECKS = [runExpression, usesPin, acceptedAdr, coverageFloor, eslintDisable, branchName, wasmPair];
+/** Each check: the list of #47 in its order, then the later checks. */
+export const CHECKS = [
+  runExpression,
+  usesPin,
+  acceptedAdr,
+  coverageFloor,
+  eslintDisable,
+  branchName,
+  wasmPair,
+  knownIdentifier,
+];
 
 /** An error that stops the run with exit code 2 and its message. */
 export class UsageError extends Error {}
@@ -116,14 +135,22 @@ export function fromBase(root, ref) {
     );
   }
   const diff = git(root, ['diff', '--name-status', '--no-renames', '-z', base, 'HEAD']) ?? '';
+  const changed = parseNameStatus(diff);
+  const before = blobs(
+    root,
+    base,
+    changed.filter((f) => f.status !== 'added').map((f) => f.path),
+  );
+  const after = blobs(
+    root,
+    'HEAD',
+    changed.filter((f) => f.status !== 'deleted').map((f) => f.path),
+  );
   return {
-    files: parseNameStatus(diff).map((f) => ({
-      ...f,
-      before: blob(root, base, f.path),
-      after: blob(root, 'HEAD', f.path),
-    })),
+    files: changed.map((f) => ({ ...f, before: before(f.path), after: after(f.path) })),
     exists: (file) => git(root, ['cat-file', '-e', `HEAD:${file}`]) !== null,
     trailers: trailersOf(root, `${base}..HEAD`),
+    side: 'HEAD',
   };
 }
 
@@ -146,14 +173,22 @@ export function trailersOf(root, range) {
 /** The index, against HEAD. */
 export function fromIndex(root) {
   const diff = git(root, ['diff', '--cached', '--name-status', '--no-renames', '-z']) ?? '';
+  const changed = parseNameStatus(diff);
+  const before = blobs(
+    root,
+    'HEAD',
+    changed.filter((f) => f.status !== 'added').map((f) => f.path),
+  );
+  const after = blobs(
+    root,
+    '',
+    changed.filter((f) => f.status !== 'deleted').map((f) => f.path),
+  );
   return {
-    files: parseNameStatus(diff).map((f) => ({
-      ...f,
-      before: blob(root, 'HEAD', f.path),
-      after: blob(root, '', f.path),
-    })),
+    files: changed.map((f) => ({ ...f, before: before(f.path), after: after(f.path) })),
     exists: (file) => git(root, ['cat-file', '-e', `:${file}`]) !== null,
     trailers: null,
+    side: 'index',
   };
 }
 
@@ -180,6 +215,7 @@ export function fromWorkTree(root) {
     })),
     exists: (file) => existsSync(path.join(root, file)),
     trailers: null,
+    side: 'work tree',
   };
 }
 
@@ -196,7 +232,117 @@ function fromPaths(root, paths, cwd) {
     if (after === null && before() === null) continue;
     files.push({ path: relative, status, before, after: () => after });
   }
-  return { files, exists: (file) => existsSync(path.join(root, file)), trailers: null };
+  return { files, exists: (file) => existsSync(path.join(root, file)), trailers: null, side: 'work tree' };
+}
+
+/** The tracked files on `side`, from `git ls-tree` or `git ls-files`, with their mode and blob. */
+function trackedFiles(root, side) {
+  const output =
+    side === 'HEAD'
+      ? git(root, ['ls-tree', '-r', '-z', '--full-tree', 'HEAD'])
+      : git(root, ['ls-files', '--stage', '-z']);
+  const entries = new Map();
+  for (const entry of (output ?? '').split('\0')) {
+    const tab = entry.indexOf('\t');
+    if (tab === -1) continue;
+    const [mode, second, third] = entry.slice(0, tab).split(' ');
+    const sha = side === 'HEAD' ? third : second;
+    if (!entries.has(entry.slice(tab + 1))) entries.set(entry.slice(tab + 1), { mode, sha });
+  }
+  return entries;
+}
+
+/**
+ * The content of each git object `names`, in their order, from one
+ * `git cat-file --batch`, or null for an object that is not there or is not a
+ * blob. A name is a SHA or `<rev>:<path>`, and has no new line.
+ */
+export function readObjects(root, names) {
+  if (names.length === 0) return [];
+  const output = execFileSync('git', ['cat-file', '--batch'], {
+    cwd: root,
+    input: `${names.join('\n')}\n`,
+    stdio: ['pipe', 'pipe', 'pipe'],
+    maxBuffer: 1 << 30,
+  });
+  const objects = [];
+  let at = 0;
+  while (at < output.length && objects.length < names.length) {
+    const newline = output.indexOf(10, at);
+    const [, type, size] = output.subarray(at, newline).toString('latin1').split(' ');
+    if (size === undefined || !/^\d+$/.test(size)) {
+      objects.push(null);
+      at = newline + 1;
+      continue;
+    }
+    const end = newline + 1 + Number(size);
+    objects.push(type === 'blob' ? output.subarray(newline + 1, end) : null);
+    at = end + 1;
+  }
+  return objects;
+}
+
+/**
+ * A function that gives the reader of `rev:path` for each path of `paths`,
+ * like `blob`. The first read reads each path in one `git cat-file --batch`,
+ * so that a change of many files does not start one git for each file. A
+ * path with a new line is read alone.
+ */
+export function blobs(root, rev, paths) {
+  let texts;
+  const all = () => {
+    if (texts !== undefined) return texts;
+    const batch = paths.filter((file) => !file.includes('\n'));
+    const objects = readObjects(
+      root,
+      batch.map((file) => `${rev}:${file}`),
+    );
+    texts = new Map(batch.map((file, i) => [file, objects[i]?.toString('utf8') ?? null]));
+    return texts;
+  };
+  return (file) => (file.includes('\n') ? blob(root, rev, file) : () => all().get(file) ?? null);
+}
+
+/** Whether `content` is binary: a NUL byte in its first 8000 bytes, as git decides. */
+const isBinary = (content) => content.subarray(0, 8000).includes(0);
+
+/**
+ * The text of each tracked file on `side` whose path `select` accepts, by
+ * path. Each file of `files` replaces its entry, so that a change that is not
+ * on disk yet (an edit of a hook) is in it. A binary file, a symbolic link
+ * and a submodule are not in it.
+ *
+ * @param {{ root: string, side: Side, files: FileChange[], select: (path: string) => boolean }} options
+ */
+export function readTree({ root, side, files, select }) {
+  const entries = [...trackedFiles(root, side)].filter(
+    ([file, { mode }]) => mode !== '120000' && mode !== '160000' && select(file),
+  );
+  const texts = new Map();
+  if (side === 'work tree') {
+    for (const [file] of entries) {
+      const absolute = path.join(root, file);
+      if (!existsSync(absolute) || !statSync(absolute).isFile()) continue;
+      const content = readFileSync(absolute);
+      if (!isBinary(content)) texts.set(file, content.toString('utf8'));
+    }
+  } else {
+    const objects = readObjects(
+      root,
+      entries.map(([, { sha }]) => sha),
+    );
+    entries.forEach(([file], i) => {
+      const content = objects[i];
+      if (content !== null && content !== undefined && !isBinary(content)) texts.set(file, content.toString('utf8'));
+    });
+  }
+  for (const file of files) {
+    if (!select(file.path)) continue;
+    const text = file.status === 'deleted' ? null : file.after();
+    if (text === null || text.includes('\0')) texts.delete(file.path);
+    else texts.set(file.path, text);
+  }
+  return texts;
 }
 
 /** The `branchPattern` of PR hygiene, from the clone of shared-workflows at `dir`, or null when there is none. */
@@ -265,10 +411,12 @@ export function currentBranch(root) {
  * stderr: a rule that did not run, and the count.
  *
  * @param {{ root: string, files: FileChange[], exists: (path: string) => boolean, branch: string | null,
- *   only: string[], sharedWorkflows?: string, trailers?: string[] | null }} options
- *   `trailers` is null, the default, for a change with no commit message yet.
+ *   only: string[], sharedWorkflows?: string, trailers?: string[] | null, side?: Side }} options
+ *   `trailers` is null, the default, for a change with no commit message yet. `side` is where the
+ *   files after the change are, by default the work tree.
  */
-export async function evaluate({ root, files, exists, branch, only, sharedWorkflows, trailers = null }) {
+export async function evaluate(options) {
+  const { root, files, exists, branch, only, sharedWorkflows, trailers = null, side = 'work tree' } = options;
   const notes = [];
   let branchPattern = null;
   if (only.includes(branchName.rule) && branch !== null && branch !== 'main') {
@@ -276,7 +424,8 @@ export async function evaluate({ root, files, exists, branch, only, sharedWorkfl
     branchPattern = await loadBranchPattern(dir);
     if (branchPattern === null) notes.push(`${branchName.rule}: not checked. No clone of shared-workflows at ${dir}.`);
   }
-  const change = { files, branch, branchPattern, exists, trailers };
+  const texts = (select) => readTree({ root, side, files, select });
+  const change = { files, branch, branchPattern, exists, trailers, texts };
   const all = CHECKS.filter((c) => only.includes(c.rule)).flatMap((c) => c.check(change));
   const findings = all.filter((f) => f.warning !== true);
   const warnings = all.filter((f) => f.warning === true);
@@ -306,7 +455,7 @@ export async function run(argv, cwd = process.cwd(), context = {}) {
     }
     const root = git(cwd, ['rev-parse', '--show-toplevel'])?.trim();
     if (!root) throw new UsageError('This is not a git repository. Run the checks inside one.');
-    const { files, exists, trailers } =
+    const { files, exists, trailers, side } =
       options.base !== undefined
         ? fromBase(root, options.base)
         : options.staged
@@ -314,7 +463,7 @@ export async function run(argv, cwd = process.cwd(), context = {}) {
           : fromPaths(root, options.paths, cwd);
     const branch = options.branch ?? currentBranch(root);
     const { only, sharedWorkflows } = options;
-    const { findings, notes } = await evaluate({ root, files, exists, branch, only, sharedWorkflows, trailers });
+    const { findings, notes } = await evaluate({ root, files, exists, branch, only, sharedWorkflows, trailers, side });
     return { out: findings.map(format), err: notes, code: findings.length === 0 ? 0 : 1 };
   } catch (error) {
     if (!(error instanceof UsageError)) throw error;

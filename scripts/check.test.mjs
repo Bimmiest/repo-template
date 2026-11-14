@@ -1,7 +1,17 @@
-import { unlinkSync } from 'node:fs';
+import { symlinkSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { CHECKS, format, parseNameStatus, parseOptions, run, trailersOf, UsageError } from './check.mjs';
+import {
+  CHECKS,
+  format,
+  parseNameStatus,
+  parseOptions,
+  readObjects,
+  readTree,
+  run,
+  trailersOf,
+  UsageError,
+} from './check.mjs';
 import {
   ADR,
   CONFIG,
@@ -187,6 +197,36 @@ describe('run', () => {
     });
   });
 
+  describe('a name in a comment that is in no source file (#57)', () => {
+    const only = ['--branch', 'main', '--only', 'known-identifier'];
+
+    it('fails a comment in a file that the branch does not touch, when the branch renames the name', async () => {
+      const root = repository();
+      write(root, { 'src/limit.ts': 'export const CACHE_LIMIT = 1;\n', 'src/run.ts': '// `CACHE_LIMIT` caps it.\n' });
+      git(root, 'add', '.');
+      git(root, 'commit', '-q', '-m', 'limit');
+      git(root, 'checkout', '-q', '-b', 'feature/x-1');
+      write(root, { 'src/limit.ts': 'export const CACHE_MAX = 1;\n' });
+      git(root, 'commit', '-q', '-am', 'rename');
+      const result = await run(['--base', 'main', ...only], root);
+      expect(result.out).toEqual([expect.stringMatching(/^src\/run\.ts:1: known-identifier: `CACHE_LIMIT` /)]);
+      write(root, { 'src/run.ts': '// `CACHE_MAX` caps it.\n' });
+      git(root, 'commit', '-q', '-am', 'follow');
+      expect(await run(['--base', 'main', ...only], root)).toMatchObject({ code: 0, out: [] });
+    });
+
+    it('checks a new comment with --staged against the index, and with a path against the work tree', async () => {
+      const root = repository();
+      write(root, { 'src/b.ts': '// `stageName` and `diskName`.\n' });
+      git(root, 'add', 'src/b.ts');
+      write(root, { 'src/stage.ts': 'export const stageName = 1;\n' });
+      git(root, 'add', 'src/stage.ts');
+      write(root, { 'src/stage.ts': 'export const diskName = 1;\n' });
+      expect((await run(['--staged', ...only], root)).out).toEqual([expect.stringContaining('`diskName`')]);
+      expect((await run([...only, 'src/b.ts'], root)).out).toEqual([expect.stringContaining('`stageName`')]);
+    });
+  });
+
   it('checks the files on disk against HEAD, from a subdirectory', async () => {
     const root = repository();
     write(root, { 'src/a.ts': BROKEN['src/a.ts'], 'src/new.ts': BROKEN['src/a.ts'] });
@@ -222,5 +262,42 @@ describe('run', () => {
 
   it('exits 2 outside a git repository', async () => {
     expect(await run(['--staged'], tempDir())).toMatchObject({ code: 2 });
+  });
+});
+
+describe('readTree and readObjects', () => {
+  it('reads each tracked text file on each side, with the files of the change on top', () => {
+    const root = repository();
+    write(root, { 'src/b.ts': 'b', 'src/bin.dat': 'a\0b', 'docs/a.md': 'm' });
+    symlinkSync('a.ts', path.join(root, 'src/link.ts'));
+    git(root, 'add', '.');
+    git(root, 'commit', '-q', '-m', 'more');
+    write(root, { 'src/b.ts': 'staged' });
+    git(root, 'add', 'src/b.ts');
+    write(root, { 'src/b.ts': 'on disk', 'src/untracked.ts': 'u' });
+    const select = (file) => file.startsWith('src/');
+    const read = (side, files = []) => Object.fromEntries(readTree({ root, side, files, select }));
+    expect(read('HEAD')).toEqual({ 'src/a.ts': 'export const a = 1;\n', 'src/b.ts': 'b' });
+    expect(read('index')['src/b.ts']).toBe('staged');
+    expect(read('work tree')['src/b.ts']).toBe('on disk');
+    const files = [
+      { path: 'src/a.ts', status: 'deleted', before: () => 'x', after: () => null },
+      { path: 'src/new.ts', status: 'added', before: () => null, after: () => 'n' },
+      { path: 'src/bin2.dat', status: 'added', before: () => null, after: () => '\0' },
+      { path: 'docs/a.md', status: 'modified', before: () => 'm', after: () => 'n' },
+    ];
+    expect(read('HEAD', files)).toEqual({ 'src/b.ts': 'b', 'src/new.ts': 'n' });
+  });
+
+  it('gives null for an object that is not there or is not a blob, in the order of the names', () => {
+    const root = repository();
+    const objects = readObjects(root, ['HEAD:src/a.ts', 'HEAD:nope', 'HEAD:src', 'HEAD:src/a.ts']);
+    expect(objects.map((o) => o?.toString('utf8') ?? null)).toEqual([
+      'export const a = 1;\n',
+      null,
+      null,
+      'export const a = 1;\n',
+    ]);
+    expect(readObjects(root, [])).toEqual([]);
   });
 });

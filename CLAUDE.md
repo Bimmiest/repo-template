@@ -49,7 +49,8 @@ refuses a tool call is a check: do not skip it with `--no-verify`.
 
 Follow [the rules](./docs/code-style.md#code-comments). A comment says why, for
 the code as it is now. For history, link the issue or the ADR. Lint finds code
-in a comment, and a TODO that has no issue.
+in a comment, and a TODO that has no issue. `scripts/check.mjs` finds a name
+between backticks that is in no source file.
 
 ## Expensive to get wrong
 
