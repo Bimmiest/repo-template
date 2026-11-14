@@ -54,7 +54,8 @@ in a comment, and a TODO that has no issue.
 ## Expensive to get wrong
 
 - **Do not lower a coverage floor** to make a branch green. When the ratchet
-  tells you to raise a floor, raise it in the same change.
+  tells you to raise a floor, raise it in the same change. A `Floor-Lowered:`
+  trailer is only for measured code that moved out, never for a failing test.
 - **Do not turn a lint rule off at a call site.** If a rule is wrong for this
   code, turn it off in the lint config, with the sentence that says why.
 - **Do not edit an accepted ADR.** Write a new ADR, and mark the old one as

@@ -13,7 +13,12 @@ export function fileChange(path, { before = null, after = null } = {}) {
   return { path, status, before: () => before, after: () => after };
 }
 
-/** A change of `files`, with no branch, and a tree that has the paths in `tree`. */
-export function change(files, { branch = null, branchPattern = null, tree = [] } = {}) {
-  return { files, branch, branchPattern, exists: (path) => tree.includes(path) };
+/**
+ * A change of `files`, with no branch, and a tree that has the paths in
+ * `tree`. `trailers` are the `Floor-Lowered:` values of its commit messages:
+ * by default it has commit messages with none, and null gives a change with
+ * no commit message yet.
+ */
+export function change(files, { branch = null, branchPattern = null, tree = [], trailers = [] } = {}) {
+  return { files, branch, branchPattern, exists: (path) => tree.includes(path), trailers };
 }

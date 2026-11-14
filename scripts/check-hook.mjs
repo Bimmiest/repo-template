@@ -243,8 +243,8 @@ async function pushCall(context, root, args) {
   const result = { findings: [], notes: [] };
   if (git(root, ['rev-parse', '--verify', '--quiet', `${BASE}^{commit}`]) !== null) {
     try {
-      const { files, exists } = fromBase(root, BASE);
-      const base = await evaluate({ root, files, exists, branch: null, only: fileRules, sharedWorkflows });
+      const { files, exists, trailers } = fromBase(root, BASE);
+      const base = await evaluate({ root, files, exists, branch: null, only: fileRules, sharedWorkflows, trailers });
       result.findings.push(...base.findings);
       result.notes.push(...base.notes);
     } catch (error) {

@@ -119,7 +119,9 @@ The rules and their reasons are in [docs/testing.md](docs/testing.md). These
 are the rules that people break:
 
 - **The coverage floor is a ratchet.** Do not lower a floor to make a branch
-  green. When the ratchet says so, raise the floor in the same change.
+  green. When the ratchet says so, raise the floor in the same change. When
+  the measured code moves out, record the fall with a `Floor-Lowered:`
+  trailer ([how](docs/testing.md#the-rules)).
 - **A test asserts behaviour, and a unit test does not measure its own
   time.** A time budget goes in a test project of its own, with no retries.
 - **Use the shared test builders**, not new literals. testing.md says where they are.

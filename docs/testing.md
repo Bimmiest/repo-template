@@ -23,6 +23,23 @@ repository keeps a different rule, it records the rule as a deviation below
   is more than one point above the floor, and prints the thresholds to
   write. Raise a floor in the change that raises the coverage. Do not lower
   a floor to make a branch green.
+- **A floor can fall only when the measured code moves out**, for example to
+  a package of its own, or out of the glob of the floor. Record each such fall
+  with a trailer in a commit message of the change:
+  `Floor-Lowered: <file> <key> <old> -> <new, or none>, <the reason>`.
+  Put it in the last paragraph of the message, with the other trailers: git
+  does not read a line in the body as a trailer.
+  `scripts/check.mjs` prints the line to add for each fall. Write the reason
+  in place of `<the reason>`. A trailer is not for a test that fails, or for
+  a test that you removed. A reviewer reads each trailer, and decides if the
+  fall is correct (template
+  [ADR 0007](https://github.com/Bimmiest/repo-template/blob/main/docs/adr/0007-a-floor-that-falls-is-recorded-in-a-commit-trailer.md)).
+- **The trailer names the net fall of the branch, exactly.** CI compares the
+  trailers of all the commits of the pull request with the change from the
+  base. A trailer with other numbers, or for a floor that did not fall,
+  fails. To add a trailer to a branch that you pushed, add an empty commit:
+  `git commit --allow-empty`. To correct or remove a trailer, reword its
+  commit.
 - **The slack of the ratchet is one point**, the default of its `slack`
   input. More slack lets the coverage fall by that number of points with no
   red build. A repository that needs more slack records it as a deviation,

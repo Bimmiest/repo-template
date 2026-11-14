@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { check, floorOf, lowered, readFloors, tokenize } from './coverage-floor.mjs';
+import { check, floorOf, lowered, parseTrailer, readFloors, tokenize, trailerLine } from './coverage-floor.mjs';
 import { change, fileChange } from './test-builders.mjs';
 
 const vitest = (floors) =>
@@ -107,5 +107,91 @@ describe('coverage-floor', () => {
     expect(findings([fileChange('src/config.ts', { before: vitest('lines: 90'), after: vitest('lines: 1') })])).toEqual(
       [],
     );
+  });
+});
+
+describe('the Floor-Lowered trailer (#74)', () => {
+  const lower = (path = 'vitest.config.ts') =>
+    fileChange(path, { before: vitest(GLOBAL), after: vitest(GLOBAL.replace('branches: 80', 'branches: 76')) });
+  const VALUE = 'vitest.config.ts thresholds.branches 80 -> 76, the parser moved to a package of its own (ADR 0009)';
+  const run = (files, trailers) => check(change(files, { trailers }));
+
+  it('reads the file, the key, the old and the new value, and needs a reason', () => {
+    expect(parseTrailer(VALUE)).toEqual({ file: 'vitest.config.ts', key: 'thresholds.branches', from: 80, to: 76 });
+    expect(parseTrailer('a/stryker.config.mjs thresholds.src/x y/**.lines 9.5 -> none, gone: 1 -> 0, ok')).toEqual({
+      file: 'a/stryker.config.mjs',
+      key: 'thresholds.src/x y/**.lines',
+      from: 9.5,
+      to: null,
+    });
+  });
+
+  it.each([
+    ['no reason', 'vitest.config.ts thresholds.lines 90 -> 80'],
+    ['the reason of the template', 'vitest.config.ts thresholds.lines 90 -> 80, <the reason>'],
+    ['no key', 'vitest.config.ts 90 -> 80, x'],
+    ['no arrow', 'vitest.config.ts thresholds.lines 90 80, x'],
+    ['a word for a value', 'vitest.config.ts thresholds.lines ninety -> 80, x'],
+  ])('reads nothing from a trailer with %s', (_, value) => {
+    expect(parseTrailer(value)).toBeNull();
+  });
+
+  it('gives the trailer line of a fall, with none for a floor that is gone', () => {
+    expect(trailerLine({ file: 'f', key: 'k', from: 90, to: 80 })).toBe('Floor-Lowered: f k 90 -> 80, <the reason>');
+    expect(trailerLine({ file: 'f', key: 'k', from: 90, to: null })).toBe(
+      'Floor-Lowered: f k 90 -> none, <the reason>',
+    );
+  });
+
+  it('passes a fall that a trailer names, also twice, and a removed floor that a trailer names with none', () => {
+    expect(run([lower()], [VALUE])).toEqual([]);
+    expect(run([lower()], [VALUE, VALUE])).toEqual([]);
+    const removed = fileChange('vitest.config.ts', { before: vitest(GLOBAL), after: null });
+    const all = ['statements 90', 'branches 80', 'functions 85', 'lines 90'].map((floor) => {
+      const [metric, from] = floor.split(' ');
+      return `vitest.config.ts thresholds.${metric} ${from} -> none, the code moved out`;
+    });
+    expect(run([removed], all)).toEqual([]);
+  });
+
+  it.each([
+    ['another file', VALUE.replace('vitest.config.ts', 'a/vitest.config.ts')],
+    ['another key', VALUE.replace('branches', 'lines')],
+    ['another old value', VALUE.replace('80 ->', '81 ->')],
+    ['another new value', VALUE.replace('-> 76', '-> 77')],
+  ])('fails a fall, and the trailer, when the trailer names %s', (_, value) => {
+    expect(run([lower()], [value]).map(({ file, line }) => ({ file, line }))).toEqual([
+      { file: 'vitest.config.ts', line: 5 },
+      { file: null, line: 0 },
+    ]);
+  });
+
+  it('fails a trailer that names no fall, and a trailer that does not have the form', () => {
+    const raised = fileChange('vitest.config.ts', {
+      before: vitest(GLOBAL),
+      after: vitest(GLOBAL.replace('80', '81')),
+    });
+    expect(run([raised], [VALUE, 'the floor is lower now']).map(({ file }) => file)).toEqual([null, null]);
+    expect(run([], [VALUE]).map(({ rule }) => rule)).toEqual(['coverage-floor']);
+  });
+
+  it('does not let a trailer pass a floor that it cannot read', () => {
+    const files = [fileChange('vitest.config.ts', { before: vitest('lines: 90'), after: vitest('lines: FLOOR') })];
+    const value = 'vitest.config.ts thresholds.lines 90 -> none, x';
+    expect(run(files, [value]).map(({ file }) => file)).toEqual(['vitest.config.ts', null]);
+  });
+
+  it('gives a fall as a warning with the trailer line when the change has no commit message', () => {
+    const [found, ...rest] = run([lower()], null);
+    expect(rest).toEqual([]);
+    expect(found).toMatchObject({
+      rule: 'coverage-floor',
+      file: 'vitest.config.ts',
+      line: 5,
+      warning: true,
+      trailer: 'Floor-Lowered: vitest.config.ts thresholds.branches 80 -> 76, <the reason>',
+    });
+    const unreadable = fileChange('vitest.config.ts', { before: vitest('lines: 90'), after: vitest('lines: X') });
+    expect(run([unreadable], null)[0].warning).toBeUndefined();
   });
 });
