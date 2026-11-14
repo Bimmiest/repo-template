@@ -87,11 +87,13 @@ description is for the reviewer. Write both to the standard above.
 
 ## Pull requests
 
-Run the gates before you open a pull request.
-[docs/development.md](docs/development.md#run-the-gates) gives the commands.
+Run the gates before you open a pull request: `npm run gates`.
+[docs/development.md](docs/development.md#run-the-gates) gives the detail.
 CI runs the same commands and the shared checks below. It also runs
 `scripts/check.mjs`, which checks the mechanical rules of `CLAUDE.md`
-([the rule checks](docs/ci.md#the-rule-checks)).
+([the rule checks](docs/ci.md#the-rule-checks)). The git hooks and the Claude
+Code hooks run the same checks before the push, and only CI enforces
+([the hooks](docs/development.md#the-hooks)).
 
 The pull request template has four sections:
 
@@ -219,6 +221,8 @@ true is your decision.
 - **`.trivyignore.yaml`** records a decision, with its reason and both
   spellings of the check ID. It is not a place for findings that nobody
   wants to read.
+- **Review a change to `.claude/` or `.githooks/` as you review a
+  workflow.** The hooks there run on the computer of each contributor.
 - **Untrusted text gets to a shell only through the environment.** This
   includes the body or branch name of a pull request, the title of an issue
   and a commit message. Do not put `${{ }}` in a `run:` block.
