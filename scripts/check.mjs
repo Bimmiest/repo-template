@@ -18,7 +18,9 @@
  *                              (default: ../shared-workflows, next to the repository)
  *
  * Prints each finding as `file:line: rule: what to change`, and exits 1 when
- * there is a finding, 0 when there is none, and 2 when it cannot run. A hook
+ * there is a finding, 0 when there is none, and 2 when it cannot run. A
+ * warning goes to stderr and does not change the exit code: a rule gives one
+ * when it needs a commit message that the change does not have yet. A hook
  * mode reads the PreToolUse JSON from stdin and follows the exit codes of
  * Claude Code instead: 2 refuses the tool call, and 0 and 1 let it go ahead.
  *
@@ -53,14 +55,19 @@ import * as wasmPair from './checks/wasm-pair.mjs';
  * @property {string | null} branch  The branch of the change, or null when HEAD is detached.
  * @property {RegExp | null} branchPattern  The branch pattern of PR hygiene, or null when it is not loaded.
  * @property {(path: string) => boolean} exists  Whether the path is in the tree after the change.
+ * @property {string[] | null} trailers  The value of each `Floor-Lowered:` trailer in the commit messages of
+ *   the change, or null when the change has no commit message yet (the index, a file, an edit).
  */
 
 /**
  * @typedef {object} Finding
  * @property {'run-expression' | 'uses-pin' | 'accepted-adr' | 'coverage-floor' | 'eslint-disable' | 'branch-name' | 'wasm-pair'} rule
- * @property {string | null} file  The file, or null for a finding about the branch.
+ * @property {string | null} file  The file, or null for a finding about the branch or a commit message.
  * @property {number} line  The line from 1, or 0 when the finding has no line.
  * @property {string} message  What to change.
+ * @property {boolean} [warning]  True when the run cannot decide, because the change has no commit message
+ *   yet. A warning goes to stderr, and does not fail the run.
+ * @property {string} [trailer]  The commit trailer that records a floor that falls, when one can.
  */
 
 /** Each check, in the order of the list in #47. */
@@ -116,7 +123,24 @@ export function fromBase(root, ref) {
       after: blob(root, 'HEAD', f.path),
     })),
     exists: (file) => git(root, ['cat-file', '-e', `HEAD:${file}`]) !== null,
+    trailers: trailersOf(root, `${base}..HEAD`),
   };
+}
+
+/**
+ * The value of each `Floor-Lowered:` trailer in the commits of `range`. Git
+ * parses the trailers, as `git interpret-trailers` does, so a line in the
+ * body of a message is not a trailer. Throws a UsageError when git cannot
+ * read the range, because a run with no trailers fails each recorded fall.
+ */
+export function trailersOf(root, range) {
+  const format = `--format=%(trailers:key=${coverageFloor.TRAILER},valueonly,unfold)`;
+  const output = git(root, ['log', '-z', '--no-show-signature', format, range]);
+  if (output === null) throw new UsageError(`git cannot read the commit messages of ${range}.`);
+  return output
+    .split(/[\0\n]/)
+    .map((value) => value.trim())
+    .filter((value) => value !== '');
 }
 
 /** The index, against HEAD. */
@@ -129,6 +153,7 @@ export function fromIndex(root) {
       after: blob(root, '', f.path),
     })),
     exists: (file) => git(root, ['cat-file', '-e', `:${file}`]) !== null,
+    trailers: null,
   };
 }
 
@@ -154,6 +179,7 @@ export function fromWorkTree(root) {
       after: onDisk(f.path),
     })),
     exists: (file) => existsSync(path.join(root, file)),
+    trailers: null,
   };
 }
 
@@ -170,7 +196,7 @@ function fromPaths(root, paths, cwd) {
     if (after === null && before() === null) continue;
     files.push({ path: relative, status, before, after: () => after });
   }
-  return { files, exists: (file) => existsSync(path.join(root, file)) };
+  return { files, exists: (file) => existsSync(path.join(root, file)), trailers: null };
 }
 
 /** The `branchPattern` of PR hygiene, from the clone of shared-workflows at `dir`, or null when there is none. */
@@ -239,9 +265,10 @@ export function currentBranch(root) {
  * stderr: a rule that did not run, and the count.
  *
  * @param {{ root: string, files: FileChange[], exists: (path: string) => boolean, branch: string | null,
- *   only: string[], sharedWorkflows?: string }} options
+ *   only: string[], sharedWorkflows?: string, trailers?: string[] | null }} options
+ *   `trailers` is null, the default, for a change with no commit message yet.
  */
-export async function evaluate({ root, files, exists, branch, only, sharedWorkflows }) {
+export async function evaluate({ root, files, exists, branch, only, sharedWorkflows, trailers = null }) {
   const notes = [];
   let branchPattern = null;
   if (only.includes(branchName.rule) && branch !== null && branch !== 'main') {
@@ -249,9 +276,13 @@ export async function evaluate({ root, files, exists, branch, only, sharedWorkfl
     branchPattern = await loadBranchPattern(dir);
     if (branchPattern === null) notes.push(`${branchName.rule}: not checked. No clone of shared-workflows at ${dir}.`);
   }
-  const change = { files, branch, branchPattern, exists };
-  const findings = CHECKS.filter((c) => only.includes(c.rule)).flatMap((c) => c.check(change));
-  notes.push(`${findings.length} finding(s) in ${files.length} file(s).`);
+  const change = { files, branch, branchPattern, exists, trailers };
+  const all = CHECKS.filter((c) => only.includes(c.rule)).flatMap((c) => c.check(change));
+  const findings = all.filter((f) => f.warning !== true);
+  const warnings = all.filter((f) => f.warning === true);
+  notes.push(...warnings.map((w) => `warning: ${format(w)}`));
+  const counted = warnings.length === 0 ? '' : `, and ${warnings.length} warning(s),`;
+  notes.push(`${findings.length} finding(s)${counted} in ${files.length} file(s).`);
   return { findings, notes };
 }
 
@@ -275,7 +306,7 @@ export async function run(argv, cwd = process.cwd(), context = {}) {
     }
     const root = git(cwd, ['rev-parse', '--show-toplevel'])?.trim();
     if (!root) throw new UsageError('This is not a git repository. Run the checks inside one.');
-    const { files, exists } =
+    const { files, exists, trailers } =
       options.base !== undefined
         ? fromBase(root, options.base)
         : options.staged
@@ -283,7 +314,7 @@ export async function run(argv, cwd = process.cwd(), context = {}) {
           : fromPaths(root, options.paths, cwd);
     const branch = options.branch ?? currentBranch(root);
     const { only, sharedWorkflows } = options;
-    const { findings, notes } = await evaluate({ root, files, exists, branch, only, sharedWorkflows });
+    const { findings, notes } = await evaluate({ root, files, exists, branch, only, sharedWorkflows, trailers });
     return { out: findings.map(format), err: notes, code: findings.length === 0 ? 0 : 1 };
   } catch (error) {
     if (!(error instanceof UsageError)) throw error;

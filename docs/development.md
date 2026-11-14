@@ -63,6 +63,13 @@ The script prints each finding on one line, as
 with 0 when it finds none, and with 2 when it cannot run. To run some rules
 only, add `--only <rule>,<rule>`.
 
+With `--base`, the `coverage-floor` rule reads the `Floor-Lowered:` trailers
+of the commits ([the trailer](testing.md#the-rules)). With `--staged` and
+with paths, there is no commit message yet. Thus the rule prints a floor
+that falls as a warning on stderr, with the trailer line to add, and the
+warning does not change the exit code. CI fails the pull request when the
+trailer is not there.
+
 The `branch-name` rule reads the branch pattern of PR hygiene from a clone of
 `shared-workflows` next to this repository. If there is no clone, the script
 tells you that it did not check the branch. To use a clone in a different
@@ -87,7 +94,7 @@ git config core.hooksPath .githooks
 
 | Hook | What it runs |
 |---|---|
-| `pre-commit` | Prettier and ESLint on the staged files, then each rule of `scripts/check.mjs` except `branch-name`, on the index |
+| `pre-commit` | Prettier and ESLint on the staged files, then each rule of `scripts/check.mjs` except `branch-name`, on the index. A floor that falls is a warning only |
 | `pre-push` | The `branch-name` rule on each branch that you push, then `npm run typecheck` |
 
 The tests, the coverage, the build and the mutation tests run in CI only,
@@ -106,6 +113,9 @@ repository.
   the branch. For a `git push`, it checks the commits since the merge base
   with `origin/main`, and the branch. A finding refuses the call, and Claude
   gets the finding as the reason. Other commands pass.
+- **A floor that falls** does not refuse an edit or a commit, because the
+  commit message is not there yet. The hook at the push reads the
+  `Floor-Lowered:` trailers, and refuses a fall that no trailer names.
 - **The gate hook** runs `npm run gates` before `gh pr create` or the
   `mcp__github__create_pull_request` tool. A failure refuses the call.
 - **When a hook cannot run**, for example on input that it cannot read, it

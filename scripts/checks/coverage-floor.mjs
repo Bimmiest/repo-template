@@ -12,6 +12,16 @@
  * arithmetic, as the mutation ratchet reads
  * `break: process.env.MUTATION_SHARD === '1' ? null : 81`.
  *
+ * A floor can fall for a reason that is correct: the code that it measured
+ * moved out, for example to a package of its own. A `Floor-Lowered:` trailer
+ * in a commit message of the change records that fall, with the file, the
+ * key, the old and the new value, and the reason. The trailer must name the
+ * fall exactly, and a trailer that names no fall of the change fails, so the
+ * record in git stays true. A change with no commit message yet (the index, a
+ * file, an edit) gets each fall that a trailer can record as a warning, with
+ * the line to add, and CI enforces. See
+ * docs/adr/0007-a-floor-that-falls-is-recorded-in-a-commit-trailer.md.
+ *
  * shortcut: the tokenizer does not know regular expression literals, and a
  * second `thresholds` object is told from the first only by its order. Change
  * to a JavaScript parser if a config needs either.
@@ -159,14 +169,45 @@ export function lowered(before, after) {
   return found;
 }
 
+/** The key of the commit trailer that records a fall. */
+export const TRAILER = 'Floor-Lowered';
+
+const REASON = '<the reason>';
+
+/** The trailer line that records the fall `found` of the config `file`. */
+export function trailerLine({ file, key, from, to }) {
+  return `${TRAILER}: ${file} ${key} ${from} -> ${to ?? 'none'}, ${REASON}`;
+}
+
+// `<file> <key> <old> -> <new>, <reason>`. The key is lazy, so that the first
+// `<number> -> ` ends it, and the reason can hold any text.
+const TRAILER_VALUE = /^(\S+) (.+?) (-?\d+(?:\.\d+)?) -> (-?\d+(?:\.\d+)?|none), (\S.*)$/;
+
+/** The fall that the trailer value `value` names, or null when the value does not have the form. */
+export function parseTrailer(value) {
+  const match = TRAILER_VALUE.exec(value.trim());
+  if (match === null || match[5].trim() === REASON) return null;
+  const [, file, key, from, to] = match;
+  return { file, key, from: Number(from), to: to === 'none' ? null : Number(to) };
+}
+
+const RECORD =
+  'If the fall is correct because the measured code moved out, and not because a test fails, ' +
+  'add this line to a commit message, with the reason:';
+
 const MESSAGES = {
-  lower: ({ key, from, to }) =>
-    `Put \`${key}\` back to ${from}, not ${to}. A floor only goes up: add the tests that hold it.`,
-  removed: ({ key, from }) => `Put \`${key}: ${from}\` back. A floor only goes up: add the tests that hold it.`,
+  lower: (found) =>
+    `Put \`${found.key}\` back to ${found.from}, not ${found.to}. A floor only goes up: add the tests that hold it. ` +
+    `${RECORD} \`${trailerLine(found)}\``,
+  removed: (found) =>
+    `Put \`${found.key}: ${found.from}\` back. A floor only goes up: add the tests that hold it. ` +
+    `${RECORD} \`${trailerLine(found)}\``,
   unreadable: ({ key, from }) =>
     `Write \`${key}\` as a number, or as an expression with one number in it, so that this check can compare it ` +
     `with ${from}.`,
 };
+
+const NO_MESSAGE = 'CI reads the commit messages of the pull request, and fails it when the line is not there.';
 
 /**
  * The configs of the change, by directory and tool, with the text before and
@@ -187,17 +228,59 @@ function configs(files) {
   return [...groups.values()].filter((g) => g.old !== null);
 }
 
-/** @param {import('../check.mjs').Change} change */
-export function check(change) {
-  const findings = [];
-  for (const { old, now } of configs(change.files)) {
+/** Each fall of each config of the change, with the path of the config. */
+function falls(files) {
+  const found = [];
+  for (const { old, now } of configs(files)) {
     const before = old.before();
     if (before === null) continue;
     const after = now === null ? null : now.after();
     const file = (now ?? old).path;
-    for (const found of lowered(before, after)) {
-      findings.push({ rule, file, line: found.line, message: MESSAGES[found.kind](found) });
+    found.push(...lowered(before, after).map((fall) => ({ ...fall, file })));
+  }
+  return found;
+}
+
+/** Whether the trailer `named` names the fall `found`, with the same numbers. */
+const names = (named, found) =>
+  named.file === found.file && named.key === found.key && named.from === found.from && named.to === found.to;
+
+/** What to change in the trailer `value` that records no fall of the change. */
+function unused(value, named) {
+  if (named === null) {
+    return (
+      `Write the commit trailer \`${TRAILER}: ${value}\` as ` +
+      `\`${TRAILER}: <file> <key> <old> -> <new, or none>, <the reason>\`, with a real reason.`
+    );
+  }
+  return (
+    `The commit trailer \`${TRAILER}: ${value}\` names no floor that falls in this change with these numbers. ` +
+    'Correct the numbers, or remove the trailer from the commit message.'
+  );
+}
+
+/** @param {import('../check.mjs').Change} change */
+export function check(change) {
+  const trailers = (change.trailers ?? []).map((value) => ({ value, named: parseTrailer(value), used: false }));
+  const findings = [];
+  for (const found of falls(change.files)) {
+    const finding = { rule, file: found.file, line: found.line, message: MESSAGES[found.kind](found) };
+    if (found.kind === 'unreadable') {
+      findings.push(finding);
+      continue;
     }
+    const matches = trailers.filter((t) => t.named !== null && names(t.named, found));
+    for (const t of matches) t.used = true;
+    if (matches.length > 0) continue;
+    const trailer = trailerLine(found);
+    findings.push(
+      change.trailers === null
+        ? { ...finding, trailer, message: `${finding.message} ${NO_MESSAGE}`, warning: true }
+        : { ...finding, trailer },
+    );
+  }
+  for (const { value, named, used } of trailers) {
+    if (!used) findings.push({ rule, file: null, line: 0, message: unused(value, named) });
   }
   return findings;
 }

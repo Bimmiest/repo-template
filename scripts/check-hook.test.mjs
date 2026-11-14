@@ -192,7 +192,7 @@ describe('--hook, Write and Edit', () => {
     expect(rules(all)).toEqual(['eslint-disable', 'eslint-disable']);
   });
 
-  it('refuses an Edit that adds ${{ }} to a run:, or lowers a floor', async () => {
+  it('refuses an Edit that adds ${{ }} to a run:', async () => {
     const root = repository();
     const workflow = {
       file_path: path.join(root, '.github/workflows/ci.yml'),
@@ -200,8 +200,15 @@ describe('--hook, Write and Edit', () => {
       new_string: 'echo ${{ github.head_ref }}',
     };
     expect(rules(await runHook(root, { tool: 'Edit', input: workflow }))).toEqual(['run-expression']);
+  });
+
+  it('passes an Edit that lowers a floor, with a warning that gives the trailer, as it has no commit message (#74)', async () => {
+    const root = repository();
     const floor = { file_path: path.join(root, 'vitest.config.ts'), old_string: '90', new_string: '80' };
-    expect(rules(await runHook(root, { tool: 'Edit', input: floor }))).toEqual(['coverage-floor']);
+    const result = await runHook(root, { tool: 'Edit', input: floor });
+    expect(result.code).toBe(0);
+    expect(result.err[0]).toMatch(/^warning: vitest\.config\.ts:1: coverage-floor: /);
+    expect(result.err[0]).toContain('`Floor-Lowered: vitest.config.ts thresholds.lines 90 -> 80, <the reason>`');
   });
 
   it('passes an Edit whose old string is not in the file, and a file of a different repository', async () => {
@@ -262,6 +269,9 @@ describe('--hook, Bash', () => {
     expect(rules(await runHook(root, { tool: 'Bash', input: { command: renamed }, cwd, argv }))).toEqual([
       'coverage-floor',
     ]);
+    const trailer = 'Floor-Lowered: vitest.config.ts thresholds.lines 90 -> 80, the code moved out';
+    git(root, 'commit', '-q', '--allow-empty', '-m', `record\n\n${trailer}`);
+    expect(await runHook(root, { tool: 'Bash', input: { command: renamed }, cwd, argv })).toMatchObject({ code: 0 });
   });
 
   it('checks the branch of a push when there is no origin/main', async () => {
