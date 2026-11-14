@@ -1,70 +1,29 @@
-import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CHECKS, format, parseNameStatus, parseOptions, run } from './check.mjs';
+import {
+  ADR,
+  CONFIG,
+  DISABLE,
+  git,
+  removeTempDirs,
+  repository,
+  SHA,
+  sharedWorkflows,
+  tempDir,
+  WORKFLOW,
+  write,
+} from './test-repository.mjs';
 
-const SHA = '3d3c42e5aac5ba805825da76410c181273ba90b1';
-const ADR = '# 0001. X\n\n- **Status:** Accepted\n\n## Decision\n\nThe rule.\n';
-const CONFIG = 'export default { test: { coverage: { thresholds: { lines: 90 } } } };\n';
-const WORKFLOW = `jobs:\n  a:\n    steps:\n      - uses: actions/checkout@${SHA} # v7.0.1\n      - run: echo ok\n`;
-
-const dirs = [];
-afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
-});
-
-/** A new directory that the test removes after it runs. */
-function tempDir() {
-  const dir = mkdtempSync(path.join(tmpdir(), 'check-'));
-  dirs.push(dir);
-  return dir;
-}
-
-/** Runs git in `cwd`, with an identity and no signing, so that the global config cannot change a test. */
-function git(cwd, ...args) {
-  return execFileSync(
-    'git',
-    ['-c', 'user.name=t', '-c', 'user.email=t@example.com', '-c', 'commit.gpgsign=false', ...args],
-    {
-      cwd,
-      encoding: 'utf8',
-    },
-  );
-}
-
-/** Writes each file of `files` under `root`. */
-function write(root, files) {
-  for (const [file, text] of Object.entries(files)) {
-    mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
-    writeFileSync(path.join(root, file), text);
-  }
-}
-
-/** A repository with one commit on `main` that passes each check. */
-function repository() {
-  const root = tempDir();
-  git(root, 'init', '-q', '-b', 'main');
-  write(root, {
-    '.github/workflows/ci.yml': WORKFLOW,
-    'docs/adr/0001-x.md': ADR,
-    'vitest.config.ts': CONFIG,
-    'src/a.ts': 'export const a = 1;\n',
-    'pcre2.wasm': 'binary',
-    'pcre2.wasm.sha256': 'sum',
-  });
-  git(root, 'add', '.');
-  git(root, 'commit', '-q', '-m', 'base');
-  return root;
-}
+afterEach(removeTempDirs);
 
 /** A change that breaks each rule that a file can break. */
 const BROKEN = {
   '.github/workflows/ci.yml': WORKFLOW.replace('echo ok', 'echo ${{ github.head_ref }}').replace(SHA, 'v7'),
   'docs/adr/0001-x.md': ADR.replace('The rule.', 'Another rule.'),
   'vitest.config.ts': CONFIG.replace('90', '80'),
-  'src/a.ts': `export const a = 1;\n${['/', '/ eslint-disable-next-line no-console'].join('')}\n`,
+  'src/a.ts': `export const a = 1;\n${DISABLE}\n`,
   'pcre2.wasm': 'another binary',
 };
 
@@ -83,12 +42,25 @@ describe('parseOptions', () => {
     expect(parseOptions(['--', '-a.ts', 'b.ts'])).toMatchObject({ paths: ['-a.ts', 'b.ts'] });
   });
 
+  it('takes the hook modes, and the gate command after --', () => {
+    expect(parseOptions(['--hook'])).toMatchObject({ hook: true, gate: null, paths: [] });
+    expect(parseOptions(['--gate', '--', 'npm', 'run', '--silent', 'gates'])).toMatchObject({
+      hook: false,
+      gate: ['npm', 'run', '--silent', 'gates'],
+      paths: [],
+    });
+  });
+
   it.each([
     [[]],
     [['--staged', 'a.ts']],
     [['--base', 'x', '--staged']],
     [['--only', 'nope', 'a.ts']],
     [['--bogus', 'a.ts']],
+    [['--hook', 'a.ts']],
+    [['--hook', '--staged']],
+    [['--gate']],
+    [['--hook', '--gate', '--', 'npm']],
   ])('refuses %j', (argv) => {
     expect(() => parseOptions(argv)).toThrow();
   });
@@ -161,10 +133,7 @@ describe('run', () => {
 
   it('checks the branch with the pattern of a shared-workflows clone', async () => {
     const root = repository();
-    const shared = tempDir();
-    write(shared, {
-      '.github/actions/pr-hygiene/pr-hygiene.mjs': 'export const branchPattern = () => /^feature\\/[a-z-]+-[0-9]+$/;\n',
-    });
+    const shared = sharedWorkflows();
     git(root, 'checkout', '-q', '-b', 'claude/x');
     const argv = ['--staged', '--only', 'branch-name', '--shared-workflows', shared];
     expect(await run(argv, root)).toMatchObject({ code: 1, out: [expect.stringMatching(/^branch-name: /)] });
