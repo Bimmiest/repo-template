@@ -64,6 +64,7 @@ to check when you change it.
 | [0003](0003-code-owners-are-asked-to-review-a-gate-change-and-no-review-is-required.md) | Code owners are asked to review a gate change, and no review is required | Accepted |
 | [0004](0004-one-point-of-coverage-slack-tests-next-to-the-code-and-mutation-on-the-changed-files.md) | One point of coverage slack, tests next to the code, and mutation on the changed files | Accepted |
 | [0005](0005-each-topic-file-has-the-template-text-first-and-the-repository-text-below-one-heading.md) | Each topic file has the template text first, and the repository text below one heading | Accepted |
+| [0006](0006-one-rule-script-three-callers-and-only-ci-enforces.md) | One rule script, three callers, and only CI enforces | Accepted |
 
 ## Numbers with no record
 

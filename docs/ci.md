@@ -29,17 +29,20 @@ for the same reason.
 `scripts/check.mjs` checks the mechanical rules of `CLAUDE.md`. On a pull
 request, the `verify` job runs it on the change against the base branch. To
 run it before you push, see [development.md](development.md#check-the-rules-of-claudemd).
-The table gives each rule, and the check that enforces it in CI.
+The git hooks and the Claude Code hooks run the same script before the push
+([the hooks](development.md#the-hooks)). Only CI enforces: a person can skip
+a hook. The table gives each rule, the check that enforces it in CI, and the
+hooks that run it.
 
-| Rule | It fails when | Enforced in CI by |
-|---|---|---|
-| `run-expression` | The `run:` of a step contains `${{` | The script. zizmor finds only the expressions that an attacker can control, for example `github.event.*` |
-| `uses-pin` | A `uses:` is not `owner/repo@<40-character SHA> # vX.Y.Z`, and does not start with `./` | The script. zizmor finds a reference with no SHA, but not a SHA with no version comment |
-| `accepted-adr` | A change edits or deletes an ADR whose status is Accepted. A change of the Status item only, to `Superseded by NNNN`, passes | The script |
-| `coverage-floor` | A number in a `thresholds` object of `vitest.config.*` or `stryker.config.*` is lower than before, or is not there | The script. The coverage ratchet compares each floor with its measurement, not with its old value |
-| `eslint-disable` | A new line of a source file has an `eslint-disable` directive | The script |
-| `branch-name` | The branch does not match `<type>/<short-description>-<issue-number>` | PR hygiene. In CI, HEAD has no branch, and the script does not check one |
-| `wasm-pair` | A change has `pcre2.wasm` or `pcre2.wasm.sha256`, and not the other one, in the same directory | The script |
+| Rule | It fails when | Enforced in CI by | Also runs in |
+|---|---|---|---|
+| `run-expression` | The `run:` of a step contains `${{` | The script. zizmor finds only the expressions that an attacker can control, for example `github.event.*` | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
+| `uses-pin` | A `uses:` is not `owner/repo@<40-character SHA> # vX.Y.Z`, and does not start with `./` | The script. zizmor finds a reference with no SHA, but not a SHA with no version comment | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
+| `accepted-adr` | A change edits or deletes an ADR whose status is Accepted. A change of the Status item only, to `Superseded by NNNN`, passes | The script | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
+| `coverage-floor` | A number in a `thresholds` object of `vitest.config.*` or `stryker.config.*` is lower than before, or is not there | The script. The coverage ratchet compares each floor with its measurement, not with its old value | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
+| `eslint-disable` | A new line of a source file has an `eslint-disable` directive | The script | `pre-commit`, and the Claude Code hook at an edit, a commit and a push |
+| `branch-name` | The branch does not match `<type>/<short-description>-<issue-number>` | PR hygiene. In CI, HEAD has no branch, and the script does not check one | `pre-push`, and the Claude Code hook at a commit and a push |
+| `wasm-pair` | A change has `pcre2.wasm` or `pcre2.wasm.sha256`, and not the other one, in the same directory | The script | `pre-commit`, and the Claude Code hook at a commit and a push. An edit changes one file, so the hook does not check the pair at an edit |
 
 The script reads each file as text, and imports and runs nothing from it. The
 comment at the top of each file in `scripts/checks/` gives the limits of the

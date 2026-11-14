@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/scripts/check.mjs", "--hook"],
+            "timeout": 120,
+            "statusMessage": "Checking the rules of CLAUDE.md"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell|mcp__github__create_pull_request",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/scripts/check.mjs", "--gate", "--", "npm", "run", "gates"],
+            "timeout": 1800,
+            "statusMessage": "Running the gates before the pull request"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Bash(git tag -d *)",
+      "Bash(git tag --delete *)",
+      "Bash(git tag -f *)",
+      "Bash(git tag --force *)",
+      "Bash(git push -d *)",
+      "Bash(git push * -d *)",
+      "Bash(git push *--delete*)",
+      "Bash(git push -f *)",
+      "Bash(git push * -f *)",
+      "Bash(git push * -f)",
+      "Bash(git push *--force*)"
+    ]
+  }
+}

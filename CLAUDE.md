@@ -28,7 +28,8 @@ Run the gates before you open a pull request.
 CI runs the same commands and the shared checks: the documentation checks, PR
 hygiene, secrets, Trivy, and the checks of the stack (for `node-ts`: the
 coverage ratchet, licences and advisories). When a check fails, it tells you
-what to change. Do that. Do not find a way around the check.
+what to change. Do that. Do not find a way around the check. A hook that
+refuses a tool call is a check: do not skip it with `--no-verify`.
 
 ## Documentation
 

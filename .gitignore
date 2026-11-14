@@ -14,8 +14,10 @@ coverage/
 # Reports from optional tooling (mutation testing writes here).
 reports/
 
-# Agent worktrees and local session state. CLAUDE.md itself is committed.
-.claude/
+# Agent worktrees and local session state. CLAUDE.md and the shared Claude
+# Code settings, with their hooks and deny rules, are committed (#47).
+.claude/*
+!.claude/settings.json
 
 # Editors and operating systems
 .vscode/*

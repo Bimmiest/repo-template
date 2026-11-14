@@ -10,7 +10,8 @@ of a failure. The rules are in [CONTRIBUTING.md](../CONTRIBUTING.md).
 ## Set up
 
 1. Install the Node version in `.nvmrc`: `nvm install`.
-2. Install the dependencies: `npm ci`.
+2. Install the dependencies: `npm ci`. Its `prepare` script also points git
+   at the hooks in `.githooks/` ([the hooks](#the-hooks)).
 
 `devEngines` in `package.json` refuses a Node version outside its range,
 before npm resolves the dependencies. The error is `EBADDEVENGINES`, with the
@@ -27,9 +28,12 @@ come first.
 ## Run the gates
 
 Run the five gates before you open a pull request. CI runs the same commands.
+The `gates` script in `package.json` runs the five in order, and stops at the
+first failure. The Claude Code hook runs the same script
+([the hooks](#the-hooks)).
 
 ```bash
-npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run build
+npm run gates
 ```
 
 To run one test file, use `npx vitest run src/path/to/file.test.ts`. To run
@@ -63,6 +67,92 @@ The `branch-name` rule reads the branch pattern of PR hygiene from a clone of
 `shared-workflows` next to this repository. If there is no clone, the script
 tells you that it did not check the branch. To use a clone in a different
 directory, add `--shared-workflows <dir>`.
+
+## The hooks
+
+Hooks run `scripts/check.mjs` before the push, so you get the verdict of CI
+earlier. A hook is a help, not a gate. Only CI enforces
+([ADR 0006](adr/0006-one-rule-script-three-callers-and-only-ci-enforces.md)).
+
+### The git hooks
+
+`npm ci` runs the `prepare` script, which sets `core.hooksPath` to
+`.githooks`. The script does nothing in CI, outside a git checkout, and when
+you set a different hooks path. If you install with `--ignore-scripts`, set
+the path yourself:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+| Hook | What it runs |
+|---|---|
+| `pre-commit` | Prettier and ESLint on the staged files, then each rule of `scripts/check.mjs` except `branch-name`, on the index |
+| `pre-push` | The `branch-name` rule on each branch that you push, then `npm run typecheck` |
+
+The tests, the coverage, the build and the mutation tests run in CI only,
+because people skip a slow hook. If `node_modules` is not there, the hooks
+skip Prettier, ESLint and the type check, and tell you.
+
+### The Claude Code hooks
+
+`.claude/settings.json` gives Claude Code two `PreToolUse` hooks and a list of
+deny rules. Claude Code reads the file when a session starts in the
+repository.
+
+- **The rule hook** runs `scripts/check.mjs --hook` before each `Edit`,
+  `Write`, `Bash` and `PowerShell` call. For an edit, it checks the file
+  after the edit, against HEAD. For a `git commit`, it checks the index and
+  the branch. For a `git push`, it checks the commits since the merge base
+  with `origin/main`, and the branch. A finding refuses the call, and Claude
+  gets the finding as the reason. Other commands pass.
+- **The gate hook** runs `npm run gates` before `gh pr create` or the
+  `mcp__github__create_pull_request` tool. A failure refuses the call.
+- **When a hook cannot run**, for example on input that it cannot read, it
+  lets the call go ahead. Claude Code then shows a hook error in the
+  transcript. CI still checks the pull request.
+
+The hooks read the tool input as data. They do not give a path or a command
+to a shell, and they do not run the command that they check.
+
+### The deny rules
+
+The deny rules stop Claude Code before it deletes or moves a tag, or
+force-pushes. This repository tags each release by hand
+([CONTRIBUTING](../CONTRIBUTING.md#releases)), so Claude can still make a
+tag. If a `release.yml` workflow makes the tags, add these rules to the
+`deny` list:
+
+```json
+"Bash(git tag *)",
+"Bash(git push *--tags*)"
+```
+
+**The deny rules are a guard against mistakes, not against attacks.** A
+rule matches the text of the command. Thus a rule does not stop
+`git -c x=y tag -d`, `git -C . push -f`, an alias or a script. The
+protection for the release tags is the tag ruleset of the repository. Set
+`tagRuleset` in `.repo-settings.json`, and `repo-settings-check` fails when
+the ruleset is not there. The check reads the key from the first release of
+shared-workflows after v1.13.0 (Bimmiest/shared-workflows#41). Do not remove
+the tag ruleset because a deny rule exists.
+
+### Skip a hook
+
+Skip a hook only in an emergency. CI runs the same checks on the pull
+request, and a skipped hook only moves the failure to CI.
+
+- To skip the git hooks for one command, add `--no-verify`:
+  `git commit --no-verify`.
+- To start Claude Code with no hooks, run
+  `claude --settings '{"disableAllHooks": true}'`.
+
+### Review a change to a hook
+
+The files in `.claude/` and `.githooks/`, and the `prepare` script, run on
+the computer of each person who works in the repository. Thus review a pull
+request that changes them as you review a workflow. `CODEOWNERS` asks the
+owner for a review of each change there.
 
 ## Tech debt
 

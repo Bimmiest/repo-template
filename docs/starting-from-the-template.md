@@ -36,12 +36,13 @@ the note at the top of the README.
    README badges show the status of the new repository.
 
 3. **Install, and run the gates.** The lockfile is in the repository, and
-   `npm ci` installs exactly what it records.
+   `npm ci` installs exactly what it records. It also points git at the
+   hooks in `.githooks/` ([the hooks](development.md#the-hooks)).
 
    ```bash
    nvm use   # .nvmrc is exact, and .npmrc holds npm to engines
    npm ci
-   npm run lint && npm run format:check && npm run typecheck && npm run test:coverage && npm run build
+   npm run gates
    ```
 
 4. **Replace `src/`** with the first real module and its test. Then run
@@ -82,3 +83,5 @@ This table names only the files whose purpose the name does not make clear.
 | `docs/adr/` | The decisions, with an index that CI holds to the directory |
 | `docs/assets/` | The banner and the demo that the README shows |
 | `CLAUDE.md` | One screen for an agent: the rules that people break |
+| `.claude/settings.json` | The Claude Code hooks that run `scripts/check.mjs` and the gates, and the deny rules for tags and force-pushes ([the hooks](development.md#the-hooks)) |
+| `.githooks/` | The git hooks that run `scripts/check.mjs` and the fast gates before a commit and a push. The `prepare` script of `package.json` sets them. |
