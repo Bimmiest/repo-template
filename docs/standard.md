@@ -37,6 +37,11 @@ Each repository has all of the core set, whatever its stack.
 The forge folder is `.github/` on GitHub and `.forgejo/` on Forgejo. The line
 limits and the classes of each file are in [documentation.md](documentation.md).
 
+A procedure that a person runs by hand to operate the repository is a
+runbook: a page in `docs/runbooks/` with `type: runbook` and five sections
+(estate ADR 0040, [documentation.md](documentation.md#where-each-text-goes)).
+A repository with no such procedure has no runbook.
+
 ### Checks
 
 | Check | When it runs | It fails when |

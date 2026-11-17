@@ -38,6 +38,24 @@ type: how-to
 | `how-to` | "How do I do this task?" | `development.md`: set up, run, and the traps |
 | `reference` | "What are the facts and the rules?" | `ci.md`, `testing.md`, `code-style.md`, `dependencies.md`, this file |
 | `explanation` | "Why is it like this?" | A design rationale |
+| `runbook` | "What do I run, now?" | A rotation or a recovery, in `docs/runbooks/` |
+
+A runbook gives the steps to operate what the repository deploys, for a
+person under pressure (estate ADR 0040). It is a page in `docs/runbooks/`,
+with a row in the index, and it has these sections, in this order:
+
+1. **When to use it**: the situation, and what the runbook does not cover.
+2. **What you need**: the access, and each credential by its vault path or
+   its password manager item. Never write a value.
+3. **Steps**: numbered. Each step says who runs it (a person or an agent),
+   and gives each command whole, on one line.
+4. **Check**: how to see that it worked, with the command.
+5. **Back out**: what to do when a step fails, and from which step.
+
+A procedure that spans repositories goes in the runbooks repository of the
+estate, not in one of them. A repository adds a runbook when it has a
+procedure that a person runs by hand. A procedure that a workflow runs is not
+a runbook: the workflow is the record.
 
 Each repository has the same six topic files: `development.md`, `ci.md`,
 `testing.md`, `code-style.md`, `dependencies.md` and `documentation.md`. A
