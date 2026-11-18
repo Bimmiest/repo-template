@@ -75,9 +75,15 @@ comment, or a digest with no tag, stays where it is until a person moves it.
 An update bot opens a pull request for each version bump:
 
 - It holds back a new version for 7 days. A security fix is not held back.
+  A release of the estate's own repositories is not held either. The hold
+  lets other users find a bad upstream release first. Nobody else uses these
+  releases, and the estate's CI makes them from reviewed pull requests, so
+  the hold only delays them.
 - Minor and patch updates land as one pull request. A major update arrives
   alone, because a major update is where a fix can be a regression.
-- All workflow-action updates land as one pull request.
+- All workflow-action updates land as one pull request. The actions of
+  `shared-workflows` land in a pull request of their own, because a major
+  release of them can need a change in the consumer first.
 - Nothing merges by itself, except the exceptions that estate ADR 0019 names.
 
 ### Merging
