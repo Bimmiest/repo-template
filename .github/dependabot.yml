@@ -79,8 +79,19 @@ updates:
     open-pull-requests-limit: 5
     # A compromised action tag is the same hazard as a compromised package,
     # and the sha pin only protects us if we do not raise it on day one.
+    # shared-workflows is the estate's own: its CI releases it from reviewed
+    # pull requests, and nobody else finds a fault in it during a hold, so the
+    # hold only delays it (docs/standard.md, Updates).
     cooldown:
       default-days: 7
+      exclude:
+        - 'Bimmiest/shared-workflows*'
+    # shared-workflows lands alone: its major can need a change here first,
+    # and that must not hold back the other action bumps. The first group
+    # that matches takes a dependency.
     groups:
+      shared-workflows:
+        patterns: ['Bimmiest/shared-workflows*']
       github-actions:
         patterns: ['*']
+        exclude-patterns: ['Bimmiest/shared-workflows*']
