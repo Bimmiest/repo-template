@@ -34,7 +34,8 @@ The rules for dependencies, and how to review an update. CONTRIBUTING.md has the
   entry that has expired, or that no advisory needs, fails CI.
 - **Licences.** The licence of each production dependency is on
   `.licence-allowlist.json`. Otherwise the file names the package, the
-  version that a person read, and why it is acceptable.
+  version that a person read, and why it is acceptable. `MPL-2.0` is on
+  the list ([ADR 0008](adr/0008-the-estate-accepts-the-mpl-2-0-licence.md)).
 - **Pin a git dependency to a commit**, not a tag, because a tag can move.
   The dependency ships a checksum that CI verifies.
 - **CI does not run install scripts** (`npm ci --ignore-scripts`). If a
